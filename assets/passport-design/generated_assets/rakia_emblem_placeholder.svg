@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Rakia mission emblem placeholder">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#1d3553"/>
+      <stop offset="100%" stop-color="#071626"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity=".35"/></filter>
+  </defs>
+  <circle cx="256" cy="256" r="228" fill="url(#g)" stroke="#c9a45a" stroke-width="10"/>
+  <circle cx="256" cy="256" r="198" fill="none" stroke="#c9a45a" stroke-width="3" stroke-dasharray="4 12" opacity=".75"/>
+  <path d="M117 272c64-100 165-142 278-122M98 320c108-34 216-39 322-10" fill="none" stroke="#c9a45a" stroke-width="6" opacity=".72"/>
+  <circle cx="256" cy="267" r="83" fill="none" stroke="#c9a45a" stroke-width="8"/>
+  <path d="M193 235c26 8 53 4 82-12 20 28 47 43 82 45-20 51-52 78-100 82-43-8-73-32-91-72 13-6 22-19 27-43z" fill="none" stroke="#c9a45a" stroke-width="5" opacity=".9"/>
+  <ellipse cx="256" cy="256" rx="180" ry="58" fill="none" stroke="#c9a45a" stroke-width="8" transform="rotate(-25 256 256)"/>
+  <ellipse cx="256" cy="256" rx="180" ry="58" fill="none" stroke="#c9a45a" stroke-width="4" transform="rotate(25 256 256)" opacity=".55"/>
+  <path d="M255 95l18 52 55 1-44 32 16 53-45-32-45 32 16-53-44-32 55-1z" fill="#c9a45a" opacity=".95"/>
+  <g fill="#c9a45a" opacity=".95">
+    <circle cx="132" cy="160" r="6"/><circle cx="382" cy="190" r="5"/><circle cx="395" cy="340" r="6"/><circle cx="156" cy="364" r="5"/>
+  </g>
+  <text x="256" y="446" text-anchor="middle" font-family="Georgia, serif" font-size="35" fill="#c9a45a" letter-spacing="3">RAKIA</text>
+</svg>

@@ -1,0 +1,26 @@
+{
+  "name": "rakia-passport-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --host 0.0.0.0",
+    "build": "nuxt build",
+    "preview": "nuxt preview --host 0.0.0.0",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@vite-pwa/nuxt": "^0.10.6",
+    "firebase": "^11.10.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "nuxt": "^3.17.6",
+    "three": "^0.177.0",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.177.0",
+    "typescript": "^5.8.3"
+  }
+}

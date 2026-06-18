@@ -1,0 +1,34 @@
+{
+  "generated_assets": [
+    "rakia_emblem_placeholder.svg",
+    "green_completion_stamp.svg",
+    "mission_badge.svg",
+    "passport_page_border.svg",
+    "guilloche_security_pattern.svg",
+    "orbit_constellation_decor.svg",
+    "primary_passport_button_frame.svg"
+  ],
+  "textures": [
+    "paper_texture_cream.webp",
+    "cover_texture_dark_navy.webp"
+  ],
+  "reference_crops_from_mockups": [
+    "crop_cover_emblem_reference.png",
+    "crop_earth_iss_viewport_reference.png",
+    "crop_green_stamp_reference.png",
+    "crop_jewelry_preview_reference.png",
+    "crop_mission_badge_reference.png",
+    "crop_passport_cover_reference.png",
+    "crop_passport_id_area_reference.png",
+    "crop_start_quiz_button_reference.png",
+    "reference_full_completed_stamp_page.webp",
+    "reference_full_cover.webp",
+    "reference_full_earth_window.webp",
+    "reference_full_jewelry_page.webp",
+    "reference_full_mission_page.webp",
+    "reference_full_quiz_page.webp",
+    "reference_full_tv_wall.webp",
+    "reference_full_welcome_page.webp"
+  ],
+  "notes": "Reference crops are extracted from the supplied concept mockups and should be used as visual references only. Generated SVG/textures are ready-to-use starter assets."
+}

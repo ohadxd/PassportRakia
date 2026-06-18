@@ -1,0 +1,215 @@
+:root {
+  --navy: #07172f;
+  --navy-2: #10284a;
+  --gold: #d6b866;
+  --gold-dark: #9d7c34;
+  --paper: #f5e7c7;
+  --paper-deep: #e2cea1;
+  --ink: #172033;
+  --muted: #657089;
+  --green: #0b7d4f;
+  --red: #9b2f2f;
+  --shadow: 0 24px 70px rgba(2, 8, 20, .42);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #__nuxt {
+  min-height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+body {
+  direction: rtl;
+  font-family: "Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(214,184,102,.18), transparent 28rem),
+    radial-gradient(circle at 85% 0%, rgba(68,126,170,.16), transparent 30rem),
+    linear-gradient(145deg, #061126, #07172f 58%, #020815);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: rgba(214, 184, 102, .18);
+  text-rendering: optimizeLegibility;
+  touch-action: manipulation;
+}
+
+button, input, textarea, select {
+  font: inherit;
+  font-size: 16px;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+a {
+  color: inherit;
+}
+
+.app-screen {
+  min-height: 100svh;
+  padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+.primary-button,
+.secondary-button,
+.danger-button,
+.icon-button {
+  min-height: 46px;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.primary-button {
+  color: #061126;
+  background: linear-gradient(180deg, #f1d98a, #caa24f);
+  box-shadow: 0 10px 20px rgba(5, 12, 28, .22), inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+.secondary-button {
+  color: var(--paper);
+  background: rgba(13, 34, 66, .86);
+  border: 1px solid rgba(214,184,102,.34);
+}
+
+.danger-button {
+  color: #fff7e2;
+  background: rgba(129, 47, 47, .88);
+}
+
+.primary-button:active,
+.secondary-button:active,
+.danger-button:active,
+.icon-button:active {
+  transform: translateY(1px);
+}
+
+.field {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(15, 43, 77, .26);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: rgba(255, 249, 232, .9);
+  outline: none;
+}
+
+.field:focus {
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 3px rgba(214,184,102,.22);
+}
+
+.visually-muted {
+  color: var(--muted);
+}
+
+.passport-security {
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(17,56,98,.08) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(135deg, rgba(17,56,98,.045) 0 1px, transparent 1px 10px),
+    url('~/assets/passport-design/generated_assets/guilloche_security_pattern.svg'),
+    url('~/assets/passport-design/textures/paper_texture_cream.webp');
+  background-size: 12px 12px, 18px 18px, 520px 520px, cover;
+}
+
+.passport-cover-texture {
+  background-image:
+    linear-gradient(180deg, rgba(8, 22, 45, .24), rgba(1, 8, 20, .34)),
+    url('~/assets/passport-design/generated_assets/orbit_constellation_decor.svg'),
+    url('~/assets/passport-design/textures/cover_texture_dark_navy.webp');
+  background-size: cover, 84% auto, cover;
+  background-position: center, center 40%, center;
+}
+
+.asset-page-border {
+  background-image: url('~/assets/passport-design/generated_assets/passport_page_border.svg');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.mission-copy {
+  line-height: 1.55;
+  font-size: .96rem;
+}
+
+.mission-copy ul {
+  margin: 8px 0 0;
+  padding: 0 18px 0 0;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.choice-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(15, 43, 77, .18);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: rgba(255, 251, 237, .86);
+  text-align: right;
+}
+
+.choice-button.selected {
+  border-color: var(--gold-dark);
+  background: rgba(231, 207, 131, .35);
+}
+
+.choice-button.correct {
+  border-color: var(--green);
+  background: rgba(15, 132, 82, .12);
+}
+
+.choice-button.wrong {
+  border-color: var(--red);
+  background: rgba(155, 47, 47, .12);
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  .app-screen {
+    padding: max(12px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .icon-button {
+    min-height: 48px;
+    padding: 0 14px;
+  }
+}
+
+.canvas-panel {
+  width: 100%;
+  border: 1px solid rgba(14, 44, 82, .2);
+  border-radius: 8px;
+  background: rgba(255, 252, 241, .62);
+  box-shadow: inset 0 0 32px rgba(9, 31, 56, .06);
+}
+
+@media (min-width: 820px) {
+  .app-screen {
+    padding: 28px;
+  }
+}

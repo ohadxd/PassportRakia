@@ -1,0 +1,68 @@
+<template>
+  <article class="dream-card">
+    <img v-if="dream.photoUrl" :src="dream.photoUrl" alt="" />
+    <div v-else class="avatar">רקיע</div>
+    <div>
+      <h2>{{ dream.name }}</h2>
+      <p>{{ dream.dream }}</p>
+      <span>{{ dream.scoreAtSubmit }} נקודות</span>
+    </div>
+  </article>
+</template>
+
+<script setup lang="ts">
+import type { DreamEntry } from '~/types/mission'
+defineProps<{ dream: DreamEntry }>()
+</script>
+
+<style scoped>
+.dream-card {
+  min-height: 220px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid rgba(214,184,102,.35);
+  border-radius: 8px;
+  padding: 18px;
+  color: #f9e9bf;
+  background:
+    linear-gradient(135deg, rgba(14, 38, 74, .88), rgba(5, 17, 37, .92)),
+    url('~/assets/passport-design/generated_assets/orbit_constellation_decor.svg');
+  background-size: cover;
+  box-shadow: 0 18px 34px rgba(0,0,0,.25);
+}
+
+img,
+.avatar {
+  width: 120px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(214,184,102,.55);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  color: rgba(249,233,191,.7);
+  background: rgba(255,255,255,.08);
+  font-weight: 900;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 3vw, 2.7rem);
+}
+
+p {
+  margin: 0 0 12px;
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  line-height: 1.35;
+}
+
+span {
+  color: #d8bd6a;
+  font-weight: 900;
+}
+</style>

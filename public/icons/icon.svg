@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="86" fill="#07172f"/>
+  <rect x="74" y="58" width="364" height="396" rx="24" fill="#0c2447" stroke="#c8a856" stroke-width="10"/>
+  <circle cx="256" cy="218" r="72" fill="none" stroke="#d8bd6a" stroke-width="12"/>
+  <path d="M139 298c66-42 168-42 234 0M256 112v212M177 218h158" stroke="#d8bd6a" stroke-width="12" stroke-linecap="round"/>
+  <text x="256" y="390" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="#e7cf83">רקיע</text>
+</svg>

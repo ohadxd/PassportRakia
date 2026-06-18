@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function sessionDoc(sessionId) {
+      return /databases/(default)/documents/sessions/$(sessionId);
+    }
+
+    function ownsSession(sessionId) {
+      return signedIn()
+        && firestore.exists(sessionDoc(sessionId))
+        && firestore.get(sessionDoc(sessionId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 6 * 1024 * 1024;
+    }
+
+    function isPdf() {
+      return request.resource != null
+        && request.resource.contentType == 'application/pdf'
+        && request.resource.size < 20 * 1024 * 1024;
+    }
+
+    match /mission-videos/{fileName} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /user-photos/{sessionId}/passport-photo.jpg {
+      allow read: if signedIn();
+      allow create, update: if ownsSession(sessionId) && isImage();
+      allow delete: if false;
+    }
+
+    match /creations/{sessionId}/{fileName} {
+      allow read: if ownsSession(sessionId);
+      allow create, update: if ownsSession(sessionId)
+        && fileName in ['patch.png', 'jewelry.png']
+        && isImage();
+      allow delete: if false;
+    }
+
+    match /pdf/{sessionId}/rakia-passport.pdf {
+      allow read, create, update: if ownsSession(sessionId) && isPdf();
+      allow delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
