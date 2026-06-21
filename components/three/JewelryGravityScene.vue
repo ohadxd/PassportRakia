@@ -1,7 +1,12 @@
 <template>
   <div class="babylon-shell">
-    <div ref="host" class="babylon-host" />
-    <div class="scene-hint">
+    <div class="babylon-canvas-wrap">
+      <div ref="host" class="babylon-host" />
+      <div v-if="isLoading || sceneError" class="scene-state" :class="{ error: sceneError }">
+        <span>{{ sceneError || 'טוען מנוע תלת-ממד...' }}</span>
+      </div>
+    </div>
+    <div v-if="!sceneError" class="scene-hint">
       <span>{{ hint }}</span>
     </div>
   </div>
@@ -55,50 +60,97 @@ const emit = defineEmits<{ designChange: [JewelryDesign] }>()
 
 const host = ref<HTMLElement | null>(null)
 const hint = ref('בחרו חלק וגעו בנקודת עיגון זהובה')
+const isLoading = ref(false)
+const sceneError = ref('')
 
 let BABYLON: Babylon | null = null
 let HavokPhysics: HavokFactory | null = null
 let engine: import('@babylonjs/core').Engine | null = null
 let scene: import('@babylonjs/core').Scene | null = null
 let resizeObserver: ResizeObserver | null = null
+let resizeHandler: (() => void) | null = null
 let anchors: Array<{ index: number; mesh: import('@babylonjs/core').Mesh; body: import('@babylonjs/core').PhysicsBody }> = []
 let parts: JewelryPart[] = []
 let threadedParts: ThreadedPart[] = []
 let partCounter = 0
 let renderCanvas: HTMLCanvasElement | null = null
+let initVersion = 0
+
+const havokWasmUrl = new URL('../../node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm', import.meta.url).href
 
 watch(() => props.mode, applyGravity)
-watch(() => [props.base, props.material], () => resetScene(), { deep: true })
+watch(() => [props.base, props.material], () => { void resetScene() }, { deep: true })
 watch(() => props.tool, () => {
   hint.value = `כלי נבחר: ${toolLabel(props.tool)}. געו בנקודת עיגון זהובה.`
 })
 
-onMounted(async () => {
-  if (!host.value) return
+onMounted(() => {
+  void bootScene()
+})
+
+onBeforeUnmount(() => {
+  initVersion += 1
+  disposeScene()
+})
+
+async function loadModules() {
+  if (BABYLON && HavokPhysics) return
   const [babylonModule, havokModule] = await Promise.all([
     import('@babylonjs/core'),
     import('@babylonjs/havok')
   ])
   BABYLON = babylonModule
   HavokPhysics = havokModule.default
-  await initScene()
-})
+}
 
-onBeforeUnmount(() => {
+async function bootScene() {
+  if (!host.value) return
+  const version = ++initVersion
+  isLoading.value = true
+  sceneError.value = ''
+
+  try {
+    await nextTick()
+    await loadModules()
+    if (version !== initVersion) return
+    await initScene(version)
+    hint.value = `כלי נבחר: ${toolLabel(props.tool)}. געו בנקודת עיגון זהובה.`
+  } catch (error) {
+    if (version === initVersion) {
+      console.error('[JewelryGravityScene] Failed to initialize Babylon scene', error)
+      sceneError.value = describeSceneError(error)
+      disposeScene()
+    }
+  } finally {
+    if (version === initVersion) isLoading.value = false
+  }
+}
+
+function disposeScene() {
   resizeObserver?.disconnect()
+  if (resizeHandler) window.removeEventListener('resize', resizeHandler)
+  engine?.stopRenderLoop()
   engine?.dispose()
+  if (host.value) host.value.innerHTML = ''
   resizeObserver = null
+  resizeHandler = null
   engine = null
   scene = null
   anchors = []
   parts = []
   threadedParts = []
   renderCanvas = null
-})
+}
 
-async function initScene() {
+async function initScene(version: number) {
   if (!BABYLON || !HavokPhysics || !host.value) return
-  engine?.dispose()
+  if (!canCreateWebGLContext()) {
+    throw new Error('WebGL is not supported on this browser.')
+  }
+  await waitForHostSize()
+  if (version !== initVersion || !host.value) return
+
+  disposeScene()
   host.value.innerHTML = ''
   parts = []
   threadedParts = []
@@ -111,14 +163,25 @@ async function initScene() {
   engine = new BABYLON.Engine(renderCanvas, true, {
     preserveDrawingBuffer: true,
     stencil: true,
-    antialias: true
+    antialias: true,
+    powerPreference: 'high-performance'
   })
   engine.setHardwareScalingLevel(Math.max(1, Math.min(window.devicePixelRatio || 1, 1.75)))
+  engine.onContextLostObservable.add(() => {
+    sceneError.value = 'הדפדפן עצר את הקנבס התלת-ממדי. טענו את העמוד מחדש ונסו שוב.'
+  })
+  engine.onContextRestoredObservable.add(() => {
+    if (!scene) void bootScene()
+  })
 
   scene = new BABYLON.Scene(engine)
   scene.clearColor = new BABYLON.Color4(0.03, 0.05, 0.09, 1)
 
-  const havokInstance = await HavokPhysics()
+  const havokInstance = await HavokPhysics({
+    locateFile(file) {
+      return file.endsWith('.wasm') ? havokWasmUrl : file
+    }
+  })
   const havokPlugin = new BABYLON.HavokPlugin(true, havokInstance)
   scene.enablePhysics(gravityVector(), havokPlugin)
 
@@ -131,14 +194,58 @@ async function initScene() {
   applyGravity()
   emitDesign()
 
-  engine.runRenderLoop(() => scene?.render())
-  resizeObserver = new ResizeObserver(() => engine?.resize())
-  resizeObserver.observe(host.value)
+  engine.runRenderLoop(() => {
+    try {
+      scene?.render()
+    } catch (error) {
+      console.error('[JewelryGravityScene] Render loop failed', error)
+      sceneError.value = describeSceneError(error)
+      engine?.stopRenderLoop()
+    }
+  })
+  attachResizeHandling()
+  requestAnimationFrame(() => engine?.resize())
 }
 
 async function resetScene() {
-  if (!host.value || !BABYLON || !HavokPhysics) return
-  await initScene()
+  if (!host.value) return
+  await bootScene()
+}
+
+async function waitForHostSize() {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const rect = host.value?.getBoundingClientRect()
+    if (rect && rect.width >= 24 && rect.height >= 24) return
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  }
+  throw new Error('The Babylon canvas container has no visible size.')
+}
+
+function canCreateWebGLContext() {
+  const testCanvas = document.createElement('canvas')
+  const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl')
+  gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  return Boolean(gl)
+}
+
+function attachResizeHandling() {
+  if (!host.value) return
+  const resize = () => engine?.resize()
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(resize)
+    resizeObserver.observe(host.value)
+  } else {
+    resizeHandler = resize
+    window.addEventListener('resize', resizeHandler)
+  }
+}
+
+function describeSceneError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  if (/webgl/i.test(message)) return 'הדפדפן לא הצליח לפתוח WebGL עבור זירת התכשיט.'
+  if (/wasm|havok/i.test(message)) return 'טעינת מנוע הפיזיקה Havok נכשלה. בדקו שהקובץ HavokPhysics.wasm נגיש מהשרת.'
+  if (/visible size|canvas/i.test(message)) return 'הקנבס התלת-ממדי נטען לפני שהעמוד קיבל גודל תקין. רעננו את העמוד ונסו שוב.'
+  return 'טעינת זירת התכשיט נכשלה. פרטי השגיאה נרשמו בקונסול הדפדפן.'
 }
 
 function setupCamera() {
@@ -609,6 +716,10 @@ function toolLabel(tool: JewelryTool) {
     linear-gradient(145deg, #06142b, #07172f 58%, #020815);
 }
 
+.babylon-canvas-wrap {
+  position: relative;
+}
+
 .babylon-host {
   width: 100%;
   height: clamp(330px, 52vw, 470px);
@@ -620,6 +731,28 @@ function toolLabel(tool: JewelryTool) {
   width: 100%;
   height: 100%;
   outline: none;
+}
+
+.scene-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  color: rgba(247, 232, 191, .92);
+  background: rgba(3, 10, 23, .6);
+  text-align: center;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.scene-state span {
+  max-width: min(420px, 100%);
+}
+
+.scene-state.error {
+  color: #ffe2d6;
+  background: rgba(35, 8, 10, .74);
 }
 
 .scene-hint {

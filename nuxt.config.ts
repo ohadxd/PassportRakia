@@ -81,7 +81,7 @@ export default defineNuxtConfig({
           options: { cacheName: 'rakia-jewelry-engine' }
         },
         {
-          urlPattern: /\/_nuxt\/HavokPhysics.*\.wasm$/i,
+          urlPattern: /\/_nuxt\/HavokPhysics(?:[.-].*)?\.wasm$/i,
           handler: 'StaleWhileRevalidate',
           options: { cacheName: 'rakia-jewelry-physics' }
         },
