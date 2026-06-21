@@ -71,9 +71,20 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,woff2}'],
-      globIgnores: ['**/mission-videos/**', '**/*.mp4', '**/*.webm', '**/*.mov'],
+      globIgnores: ['**/mission-videos/**', '**/*.mp4', '**/*.webm', '**/*.mov', '**/babylon-jewelry*.js', '**/HavokPhysics*.wasm'],
+      maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       navigateFallback: '/',
       runtimeCaching: [
+        {
+          urlPattern: /\/_nuxt\/babylon-jewelry.*\.js$/i,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'rakia-jewelry-engine' }
+        },
+        {
+          urlPattern: /\/_nuxt\/HavokPhysics.*\.wasm$/i,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'rakia-jewelry-physics' }
+        },
         {
           urlPattern: /\.(?:js|css|html|svg|png|jpg|jpeg|webp|woff2)$/i,
           handler: 'StaleWhileRevalidate',
@@ -88,6 +99,15 @@ export default defineNuxtConfig({
     }
   },
   vite: {
-    optimizeDeps: { include: ['three', 'jspdf', 'html2canvas'] }
+    optimizeDeps: { include: ['three', 'jspdf', 'html2canvas'] },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('@babylonjs')) return 'babylon-jewelry'
+          }
+        }
+      }
+    }
   }
 })
