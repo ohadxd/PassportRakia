@@ -69,7 +69,7 @@
     </button>
 
     <p>{{ message }}</p>
-    <button class="primary-button" type="button" :disabled="!found" @click="emit('ready')">
+    <button class="primary-button mission-action" type="button" :disabled="!found" @click="emit('ready')">
       אישור זיהוי
     </button>
   </section>

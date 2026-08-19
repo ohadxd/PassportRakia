@@ -7,7 +7,7 @@
         {{ secured.includes(item) ? 'מקובע' : item }}
       </button>
     </div>
-    <button class="primary-button" type="button" :disabled="secured.length < objects.length" @click="emit('ready')">כל החפצים מקובעים</button>
+    <button class="primary-button mission-action" type="button" :disabled="secured.length < objects.length" @click="emit('ready')">כל החפצים מקובעים</button>
   </section>
 </template>
 

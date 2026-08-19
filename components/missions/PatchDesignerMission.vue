@@ -80,7 +80,7 @@
             <button type="button" @click="resizeText(0.1)">＋</button>
           </div>
         </div>
-        <button class="primary-button" type="button" @click="save">שמור פאץ׳</button>
+        <button class="primary-button mission-action" type="button" @click="save">שמור פאץ׳</button>
       </div>
     </div>
   </section>

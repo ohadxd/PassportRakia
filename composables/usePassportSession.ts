@@ -31,6 +31,14 @@ export function usePassportSession(sessionId: string) {
     session.value = await firebase.updateSession(sessionId, { currentPageIndex: index })
   }
 
+  async function recordChallengeOutcome(correct: boolean) {
+    if (!session.value) return 0
+    const current = Math.max(0, session.value.currentCorrectStreak || 0)
+    const nextStreak = correct ? Math.min(200, current + 1) : 0
+    session.value = await firebase.updateSession(sessionId, { currentCorrectStreak: nextStreak })
+    return nextStreak
+  }
+
   function buildProgress(mission: MissionConfig, patch: Partial<MissionProgress>): MissionProgress {
     const current = progress.value[mission.id]
     const defaults: MissionProgress = {
@@ -116,6 +124,7 @@ export function usePassportSession(sessionId: string) {
     summary,
     refresh,
     setPage,
+    recordChallengeOutcome,
     startMission,
     completeMission,
     skipMission

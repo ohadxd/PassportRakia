@@ -51,6 +51,7 @@ service cloud.firestore {
           'rank',
           'completedCount',
           'skippedCount',
+          'currentCorrectStreak',
           'lastActiveAt'
         ])
         && data.keys().hasAll([
@@ -85,6 +86,10 @@ service cloud.firestore {
         && data.skippedCount is int
         && data.skippedCount >= 0
         && data.skippedCount <= 60
+        && (!hasOptional(data, 'currentCorrectStreak')
+          || (data.currentCorrectStreak is int
+            && data.currentCorrectStreak >= 0
+            && data.currentCorrectStreak <= 200))
         && optionalString(data, 'photoUrl', 2048)
         && (!hasOptional(data, 'photoStoragePath')
           || data.photoStoragePath == 'user-photos/' + sessionId + '/passport-photo.jpg');

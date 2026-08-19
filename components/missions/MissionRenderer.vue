@@ -2,6 +2,11 @@
   <div class="mission">
     <MissionHeader :order="mission.order" :title="mission.title" :subtitle="mission.subtitle" />
 
+    <p v-if="isChallengeMission" class="streak-status" aria-live="polite">
+      <span aria-hidden="true">✦</span>
+      רצף נוכחי: {{ currentCorrectStreak }}
+    </p>
+
     <div v-if="mission.wallContentSummary?.length" class="mission-copy summary-copy">
       <p v-for="line in mission.wallContentSummary" :key="line">{{ line }}</p>
     </div>
@@ -12,7 +17,7 @@
     <section v-if="mission.type === 'transition'" class="transition-panel">
       <h2>מוכן למשימה?</h2>
       <p>דרכון רקיע שלך נפתח. בכל תחנה תוכל להשלים משימה, לצבור ניקוד ולקבל חותמת.</p>
-      <button class="primary-button" type="button" @click="completeNow(1)">המשך</button>
+      <button class="primary-button mission-action" type="button" @click="completeNow(1)">המשך</button>
     </section>
 
     <section v-else-if="mission.type === 'wall-video-confirmation'" class="wall-video-panel">
@@ -20,7 +25,7 @@
         <strong>הסרטון מוקרן במסך התערוכה</strong>
         <span>צפו בטלוויזיה שעל הקיר, ואז אשרו כאן כדי להמשיך בדרכון.</span>
       </div>
-      <button class="primary-button" type="button" @click="completeNow(1)">{{ mission.actionText || 'ראיתי' }}</button>
+      <button class="primary-button mission-action" type="button" @click="completeNow(1)">{{ mission.actionText || 'ראיתי' }}</button>
     </section>
 
     <section v-else-if="isVideoMission" class="video-panel">
@@ -39,17 +44,18 @@
         :started="quizStarted"
         :current-index="quizIndex"
         :message="quizMessage"
+        :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
       />
       <div v-else class="control-row">
-        <button class="primary-button" type="button" @click="completeNow(attempts || 1)">{{ mission.actionText || 'ראיתי' }}</button>
+        <button class="primary-button mission-action" type="button" @click="completeNow(attempts || 1)">{{ mission.actionText || 'ראיתי' }}</button>
       </div>
     </section>
 
     <section v-else-if="mission.type === 'ar-confirmation'" class="ar-panel">
       <a class="ar-link" :href="arUrl" target="_blank" rel="noreferrer">{{ arLinkLabel }}</a>
-      <button class="primary-button" type="button" @click="completeNow(1)">
+      <button class="primary-button mission-action" type="button" @click="completeNow(1)">
         {{ mission.actionText || 'סיימתי' }}
       </button>
     </section>
@@ -67,13 +73,14 @@
         :current-index="quizIndex"
         :message="quizMessage"
         :disabled="mission.type === 'confirmation-quiz' && checkedControls.length < controlChecks.length"
+        :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
       />
     </section>
 
     <section v-else-if="mission.type === 'sort-game'" class="sort-panel">
-      <button v-if="!sortStarted" class="primary-button" type="button" @click="startSort">התחל שאלון</button>
+      <button v-if="!sortStarted" class="primary-button mission-action" type="button" @click="startSort">התחל שאלון</button>
       <template v-else>
         <ol class="sort-list">
           <li v-for="(item, index) in sortOrder" :key="item.id">
@@ -85,12 +92,12 @@
           </li>
         </ol>
         <p v-if="gameMessage">{{ gameMessage }}</p>
-        <button class="primary-button" type="button" @click="submitSort">סיימתי</button>
+        <button class="primary-button mission-action" type="button" :disabled="challengeBusy" @click="submitSort">סיימתי</button>
       </template>
     </section>
 
     <section v-else-if="mission.type === 'classification-game'" class="classification-panel">
-      <button v-if="!classificationStarted" class="primary-button" type="button" @click="startClassification">התחל שאלון</button>
+      <button v-if="!classificationStarted" class="primary-button mission-action" type="button" @click="startClassification">התחל שאלון</button>
       <template v-else>
         <div class="class-items">
           <article v-for="item in mission.classificationItems" :key="item.id">
@@ -109,7 +116,7 @@
           </article>
         </div>
         <p v-if="gameMessage">{{ gameMessage }}</p>
-        <button class="primary-button" type="button" @click="submitClassification">סיימתי</button>
+        <button class="primary-button mission-action" type="button" :disabled="challengeBusy" @click="submitClassification">סיימתי</button>
       </template>
     </section>
 
@@ -128,6 +135,7 @@
         :current-index="quizIndex"
         :message="quizMessage"
         :disabled="!sceneReady"
+        :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
       />
@@ -142,6 +150,7 @@
         :current-index="quizIndex"
         :message="quizMessage"
         :disabled="!sceneReady"
+        :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
       />
@@ -165,7 +174,7 @@
       </label>
       <p>{{ dream.length }}/120</p>
       <p v-if="dreamError" class="error-note">{{ dreamError }}</p>
-      <button class="primary-button" type="button" :disabled="dream.trim().length < 4" @click="saveDream">סיימתי</button>
+      <button class="primary-button mission-action" type="button" :disabled="dream.trim().length < 4" @click="saveDream">סיימתי</button>
     </section>
 
     <section v-else-if="mission.type === 'summary'" class="summary-panel">
@@ -187,6 +196,7 @@
     </section>
 
     <Stamp v-if="progress?.status === 'completed' && mission.baseScore > 0" :seed="mission.order" :animate="animateStamp" />
+    <StreakCelebration :streak="currentCorrectStreak" :outcome="feedbackOutcome" />
   </div>
 </template>
 
@@ -200,6 +210,8 @@ const props = defineProps<{
   session: PassportSession
   progress?: MissionProgress
   allProgress: Record<string, MissionProgress>
+  currentCorrectStreak: number
+  recordChallengeOutcome: (correct: boolean) => Promise<number>
 }>()
 
 const emit = defineEmits<{
@@ -212,6 +224,7 @@ const emit = defineEmits<{
 
 const firebase = useFirebase()
 const profanity = useProfanityFilter()
+const { playChallengeSound } = useStamp()
 const runtime = useRuntimeConfig()
 const IOS_RAKIA_APP_URL = 'https://apps.apple.com/fi/app/rakia/id6504777792'
 
@@ -234,11 +247,14 @@ const dream = ref('')
 const dreamError = ref('')
 const savedMessage = ref('')
 const animateStamp = ref(false)
+const feedbackOutcome = ref<'correct' | 'wrong' | ''>('')
+const challengeBusy = ref(false)
 const checkedControls = ref<string[]>([])
 const controlChecks = ['תקשורת תקינה', 'מיקום ידוע', 'צוות כשיר למשימה']
 
 const stampMissions = computed(() => missions.filter((mission) => mission.baseScore > 0))
 const isVideoMission = computed(() => ['intro-video', 'video-quiz', 'video-confirmation'].includes(props.mission.type))
+const isChallengeMission = computed(() => ['quiz', 'confirmation-quiz', 'video-quiz', 'sort-game', 'classification-game', 'three-info-quiz', 'three-game'].includes(props.mission.type))
 const webArUrl = computed(() => `${runtime.public.rakiaArBaseUrl.replace(/\/$/, '')}/${props.mission.arSlug || props.mission.id}`)
 const arUrl = computed(() => isIosDevice.value ? IOS_RAKIA_APP_URL : webArUrl.value)
 const arLinkLabel = computed(() => isIosDevice.value ? 'פתחו באפליקציית רקיע לאייפון' : 'פתחו את אפליקציית רקיע')
@@ -284,6 +300,8 @@ async function resetState() {
   dreamError.value = ''
   savedMessage.value = ''
   checkedControls.value = []
+  feedbackOutcome.value = ''
+  challengeBusy.value = false
   const video = props.mission.video
   if (video?.url) {
     videoUrl.value = video.url
@@ -325,7 +343,8 @@ function startQuiz() {
   quizMessage.value = ''
 }
 
-function answerQuiz(index: number) {
+async function answerQuiz(index: number) {
+  if (challengeBusy.value) return
   const question = quizQuestions.value[quizIndex.value]
   if (!question) return
   attempts.value += 1
@@ -335,7 +354,21 @@ function answerQuiz(index: number) {
     { questionId: question.id, selected: index, correct, attempts: attempts.value }
   ]
   if (!correct) {
+    try {
+      await showChallengeOutcome(false)
+    } catch (error) {
+      console.error(error)
+      quizMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+      return
+    }
     quizMessage.value = 'תשובה לא נכונה, נסו שוב.'
+    return
+  }
+  try {
+    await showChallengeOutcome(true)
+  } catch (error) {
+    console.error(error)
+    quizMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
     return
   }
   quizMessage.value = 'נכון.'
@@ -362,13 +395,23 @@ function moveSort(index: number, delta: number) {
 }
 
 function submitSort() {
+  if (challengeBusy.value) return
   attempts.value += 1
   const correct = sortOrder.value.every((item, index) => item.correctOrder === index + 1)
   if (!correct) {
     gameMessage.value = 'הסדר עדיין לא מדויק. אפשר לנסות שוב.'
+    void showChallengeOutcome(false).catch((error) => {
+      console.error(error)
+      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+    })
     return
   }
-  completeNow(attempts.value)
+  void showChallengeOutcome(true)
+    .then(() => completeNow(attempts.value))
+    .catch((error) => {
+      console.error(error)
+      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+    })
 }
 
 function startClassification() {
@@ -377,6 +420,7 @@ function startClassification() {
 }
 
 function submitClassification() {
+  if (challengeBusy.value) return
   attempts.value += 1
   const items = props.mission.classificationItems || []
   const allAnswered = items.every((item) => classifications[item.id])
@@ -387,9 +431,31 @@ function submitClassification() {
   const correct = items.every((item) => classifications[item.id] === item.category)
   if (!correct) {
     gameMessage.value = 'חלק מהפריטים עדיין לא במקום הנכון. נסו שוב.'
+    void showChallengeOutcome(false).catch((error) => {
+      console.error(error)
+      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+    })
     return
   }
-  completeNow(attempts.value)
+  void showChallengeOutcome(true)
+    .then(() => completeNow(attempts.value))
+    .catch((error) => {
+      console.error(error)
+      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+    })
+}
+
+async function showChallengeOutcome(correct: boolean) {
+  challengeBusy.value = true
+  feedbackOutcome.value = correct ? 'correct' : 'wrong'
+  playChallengeSound(correct, correct ? props.currentCorrectStreak + 1 : 0)
+  try {
+    await props.recordChallengeOutcome(correct)
+    await new Promise<void>((resolve) => window.setTimeout(resolve, correct ? 1200 : 3000))
+  } finally {
+    if (feedbackOutcome.value === (correct ? 'correct' : 'wrong')) feedbackOutcome.value = ''
+    challengeBusy.value = false
+  }
 }
 
 async function saveCreation(type: 'patch' | 'jewelry', event: { imageDataUrl: string; data: Record<string, unknown> }) {
@@ -443,8 +509,55 @@ async function saveDream() {
   display: grid;
   align-content: start;
   gap: 13px;
-  padding-bottom: 54px;
+  padding-bottom: clamp(160px, 31svh, 270px);
 }
+
+.mission-action {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: min(calc(100vw - 40px), 700px);
+  transform: translateX(-50%);
+}
+
+.mission :deep(.mission-action) {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: min(calc(100vw - 40px), 700px);
+  transform: translateX(-50%);
+}
+
+.mission-action:active,
+.mission :deep(.mission-action:active) { transform: translateX(-50%) translateY(1px); }
+
+.mission :deep(.mission-header) {
+  position: sticky;
+  z-index: 5;
+  top: -18px;
+  margin: -18px -8px 8px;
+  padding: 18px 8px 10px;
+  background: linear-gradient(to bottom, rgba(var(--bg-rgb), .98) 78%, rgba(var(--bg-rgb), 0));
+}
+
+.streak-status {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 7px;
+  margin: -5px 0 0;
+  border: 1px solid rgba(var(--accent-rgb), .4);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--text);
+  background: rgba(var(--bg-rgb), .5);
+  font-size: .82rem;
+  font-weight: 500;
+}
+
+.streak-status span { color: var(--accent); }
 
 .summary-copy {
   display: grid;

@@ -102,7 +102,7 @@
     <!-- כותרת תחתונה: סטטוס + שמירה -->
     <footer class="lab-actions">
       <p>{{ statusText }}</p>
-      <button class="primary-button" type="button" @click="save">שמור תכשיט</button>
+      <button class="primary-button mission-action" type="button" @click="save">שמור תכשיט</button>
     </footer>
   </section>
 </template>
