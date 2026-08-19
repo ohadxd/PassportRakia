@@ -1,17 +1,20 @@
 <template>
   <div class="quiz-block">
-    <button v-if="!started" class="primary-button" type="button" :disabled="disabled" @click="$emit('start')">
-      התחל שאלון
-    </button>
+    <div v-if="!started" class="quiz-actions">
+      <button class="primary-button" type="button" :disabled="disabled || locked" @click="$emit('start')">
+        התחל שאלון
+      </button>
+    </div>
 
     <template v-else-if="currentQuestion">
       <h2>{{ currentQuestion.text }}</h2>
-      <div class="choice-grid">
+      <div class="choice-grid quiz-actions">
         <button
           v-for="(answer, answerIndex) in currentQuestion.answers"
           :key="`${currentQuestion.id}-${answerIndex}`"
           class="choice-button"
           type="button"
+          :disabled="locked"
           @click="$emit('answer', answerIndex)"
         >
           {{ answer }}
@@ -33,11 +36,13 @@ const props = withDefaults(defineProps<{
   currentIndex?: number
   message?: string
   disabled?: boolean
+  locked?: boolean
 }>(), {
   questions: () => [],
   currentIndex: 0,
   message: '',
-  disabled: false
+  disabled: false,
+  locked: false
 })
 
 defineEmits<{
@@ -52,18 +57,39 @@ const currentQuestion = computed(() => props.questions[props.currentIndex])
 .quiz-block {
   display: grid;
   gap: 12px;
+  min-height: 100%;
 }
 
 h2 {
   margin: 0;
-  color: #12243b;
+  color: var(--text);
   font-size: 1.2rem;
   line-height: 1.35;
 }
 
 .quiz-message {
   margin: 0;
-  color: #314665;
+  color: var(--text-muted);
   font-weight: 800;
 }
+
+.quiz-actions {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: min(calc(100vw - 28px), 716px);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(var(--bg-rgb), .96);
+  box-shadow: 0 -10px 36px rgba(var(--bg-deep-rgb), .5);
+  backdrop-filter: blur(12px);
+}
+
+.quiz-actions .primary-button { width: 100%; }
 </style>

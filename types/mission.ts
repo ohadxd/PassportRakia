@@ -100,6 +100,7 @@ export interface PassportSession {
   rank: string
   completedCount: number
   skippedCount: number
+  currentCorrectStreak: number
   lastActiveAt: string
 }
 

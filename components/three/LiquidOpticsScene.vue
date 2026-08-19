@@ -6,7 +6,7 @@
       <input v-model.number="tension" type="range" min="20" max="90" />
     </label>
     <p>קרני אור מתכנסות דרך עדשה נוזלית חלקה יותר ככל שמתח הפנים עולה.</p>
-    <button class="primary-button" type="button" @click="emit('ready')">הפעלתי את הניסוי</button>
+    <button class="primary-button mission-action" type="button" @click="emit('ready')">הפעלתי את הניסוי</button>
   </section>
 </template>
 

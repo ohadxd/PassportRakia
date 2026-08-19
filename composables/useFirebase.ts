@@ -161,6 +161,7 @@ export function useFirebase() {
       rank: 'צוער רקיע',
       completedCount: 0,
       skippedCount: 0,
+      currentCorrectStreak: 0,
       lastActiveAt: nowIso()
     }
     const { doc, setDoc } = await import('firebase/firestore')
@@ -184,7 +185,13 @@ export function useFirebase() {
     const { doc, getDoc } = await import('firebase/firestore')
     const snap = await getDoc(doc(services.db, 'sessions', sessionId))
     if (snap.exists()) {
-      const session = snap.data() as PassportSession
+      // Older passports predate the streak field. Normalize them on read so the
+      // next ordinary session write transparently upgrades the document.
+      const stored = snap.data() as PassportSession
+      const session = {
+        ...stored,
+        currentCorrectStreak: Math.max(0, stored.currentCorrectStreak || 0)
+      }
       writeLocal(`sessions/${sessionId}`, session)
       return session
     }
@@ -194,7 +201,14 @@ export function useFirebase() {
   async function updateSession(sessionId: string, patch: Partial<PassportSession>) {
     const current = await getSession(sessionId)
     if (!current) throw new Error(`Session ${sessionId} was not found in Firestore.`)
-    const next = { ...current, ...patch, id: sessionId, updatedAt: nowIso(), lastActiveAt: nowIso() } as PassportSession
+    const next = {
+      ...current,
+      currentCorrectStreak: Math.max(0, current.currentCorrectStreak || 0),
+      ...patch,
+      id: sessionId,
+      updatedAt: nowIso(),
+      lastActiveAt: nowIso()
+    } as PassportSession
     const services = await requireServices()
     const { doc, setDoc } = await import('firebase/firestore')
     await setDoc(doc(services.db, 'sessions', sessionId), withoutUndefined(next), { merge: true })

@@ -15,6 +15,8 @@
         :session="session"
         :progress="progress[mission.id]"
         :all-progress="progress"
+        :current-correct-streak="session.currentCorrectStreak"
+        :record-challenge-outcome="recordChallengeOutcome"
         @start="startMission(mission)"
         @complete="complete"
         @skip="skip"
@@ -35,7 +37,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const sessionId = String(route.params.sessionId)
-const { session, progress, loading, error, orderedMissions, refresh, setPage, startMission, completeMission, skipMission } = usePassportSession(sessionId)
+const { session, progress, loading, error, orderedMissions, refresh, setPage, startMission, completeMission, skipMission, recordChallengeOutcome } = usePassportSession(sessionId)
 const { playStampSound } = useStamp()
 
 // index אופטימי מקומי: מתעדכן מיד עם השלמת ההיפוך, וכתיבת ה-Firebase רצה ברקע —
