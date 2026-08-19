@@ -14,6 +14,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import localIssModelUrl from '~/assets/iss.glb?url'
+import { THEME } from '~/data/theme'
 
 const props = defineProps<{ modelUrl?: string }>()
 const emit = defineEmits<{ ready: [] }>()
@@ -84,7 +85,7 @@ function setupScene() {
   const height = Math.max(230, host.value.clientHeight)
 
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x07172f)
+  scene.background = new THREE.Color(THEME.bgHex)
 
   camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100)
   camera.position.set(0, 0.35, 5.2)
@@ -245,7 +246,7 @@ function describeModelError(error: unknown) {
   height: clamp(260px, 52vw, 390px);
   overflow: hidden;
   border-radius: 8px;
-  background: #07172f;
+  background: var(--bg);
 }
 
 .three-host :deep(canvas) {
@@ -263,15 +264,16 @@ function describeModelError(error: unknown) {
   place-items: center;
   gap: 10px;
   padding: 22px;
-  color: rgba(247, 232, 191, .95);
-  background: rgba(2, 8, 23, .64);
+  color: var(--text);
+  background: rgba(var(--bg-deep-rgb), .64);
   text-align: center;
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .scene-state.error {
-  color: #ffe2d6;
-  background: rgba(35, 8, 10, .78);
+  color: var(--error-text);
+  background: rgba(var(--red-rgb), .28);
 }
 
 .scene-state button {
@@ -279,18 +281,19 @@ function describeModelError(error: unknown) {
   border: 1px solid rgba(255,255,255,.36);
   border-radius: 8px;
   padding: 0 14px;
-  color: #10233d;
-  background: #f5d674;
-  font-weight: 900;
+  color: var(--bg);
+  background: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .scene-note {
   margin: 0;
-  color: #4a5870;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
 .scene-note.error {
-  color: #852d2d;
+  color: var(--error-text);
 }
 </style>

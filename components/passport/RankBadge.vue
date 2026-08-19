@@ -14,15 +14,15 @@ defineProps<{ rank: string }>()
   display: inline-grid;
   gap: 2px;
   min-width: 132px;
-  border: 1px solid rgba(214,184,102,.42);
+  border: 1px solid var(--highlight);
   border-radius: 8px;
   padding: 7px 10px;
-  color: #f7e8bf;
-  background: rgba(6, 18, 38, .72);
+  color: var(--text);
+  background: rgba(var(--highlight-rgb), .19);
 }
 
 .rank-badge span {
-  color: rgba(247,232,191,.68);
+  color: var(--text-muted);
   font-size: .72rem;
 }
 

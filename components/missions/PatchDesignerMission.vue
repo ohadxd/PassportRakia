@@ -410,14 +410,15 @@ onMounted(() => { seedStars(); draw() })
   width: min(360px, 100%);
   aspect-ratio: 1;
   touch-action: none;
-  filter: drop-shadow(0 14px 28px rgba(4, 14, 31, .4));
+  filter: drop-shadow(0 14px 28px rgba(var(--bg-rgb), .4));
 }
 
 .stage-hint {
   margin: 0;
   font-size: .82rem;
-  font-weight: 700;
-  color: #6b7a92;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 /* לוח בקרה — שפת הדרכון */
@@ -425,19 +426,19 @@ onMounted(() => { seedStars(); draw() })
   display: grid;
   gap: 13px;
   padding: 14px;
-  border: 1px solid rgba(122, 99, 34, .22);
+  border: 1px solid var(--surface-border);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 252, 242, .92), rgba(250, 243, 224, .88));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+  background: var(--surface);
 }
 
 .field { display: grid; gap: 6px; }
 
 .field-label {
   font-size: .74rem;
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-weight: 500;
   letter-spacing: .04em;
-  color: #7a6322;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -450,18 +451,19 @@ onMounted(() => { seedStars(); draw() })
 
 .chip-row button {
   min-height: 42px;
-  border: 1px solid rgba(18, 36, 59, .16);
+  border: 1px solid var(--surface-border);
   border-radius: 10px;
-  color: #12243b;
-  background: rgba(255, 250, 232, .78);
-  font-weight: 800;
+  color: var(--text);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 500;
   cursor: pointer;
 }
 
 .chip-row button.active {
-  color: #061126;
-  background: #e5c670;
-  box-shadow: inset 0 0 0 1px rgba(93, 67, 18, .28);
+  color: var(--bg);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(var(--bg-rgb), .3);
 }
 
 .icon-grid {
@@ -472,16 +474,16 @@ onMounted(() => { seedStars(); draw() })
 
 .icon-grid button {
   aspect-ratio: 1;
-  border: 1px solid rgba(18, 36, 59, .16);
+  border: 1px solid var(--surface-border);
   border-radius: 10px;
-  background: rgba(255, 250, 232, .78);
+  background: var(--surface);
   font-size: 1.3rem;
   cursor: pointer;
 }
 
 .icon-grid button.active {
-  background: #e5c670;
-  box-shadow: inset 0 0 0 1px rgba(93, 67, 18, .28);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(var(--bg-rgb), .3);
 }
 
 .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -490,13 +492,13 @@ onMounted(() => { seedStars(); draw() })
   width: 34px;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(18, 36, 59, .2);
+  border: 2px solid var(--surface-border);
   background: var(--swatch);
   cursor: pointer;
-  box-shadow: inset 0 1px 5px rgba(255,255,255,.3), 0 3px 9px rgba(12,24,40,.18);
+  box-shadow: inset 0 1px 5px rgba(255,255,255,.3), 0 3px 9px rgba(var(--bg-rgb),.18);
 }
 
-.swatch.active { border-color: #061126; outline: 2px solid rgba(214, 184, 102, .9); outline-offset: 1px; }
+.swatch.active { border-color: var(--bg); outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .custom-swatch {
   position: relative;
@@ -505,9 +507,10 @@ onMounted(() => { seedStars(); draw() })
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 2px dashed rgba(122, 99, 34, .5);
-  color: #7a6322;
-  font-weight: 900;
+  border: 2px dashed var(--surface-border);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 500;
   cursor: pointer;
   overflow: hidden;
 }
@@ -517,11 +520,12 @@ onMounted(() => { seedStars(); draw() })
 .text-field {
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid rgba(18, 36, 59, .18);
+  border: 1px solid var(--surface-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .8);
-  color: #12243b;
-  font-weight: 800;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 500;
   text-align: center;
   letter-spacing: .08em;
 }
@@ -535,19 +539,21 @@ onMounted(() => { seedStars(); draw() })
   align-items: center;
   gap: 8px;
   font-size: .82rem;
-  font-weight: 800;
-  color: #50617b;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .size-row button {
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  border: 1px solid rgba(18, 36, 59, .18);
-  background: rgba(255, 250, 232, .85);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
   font-size: 1.1rem;
-  font-weight: 900;
-  color: #12243b;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text);
   cursor: pointer;
 }
 

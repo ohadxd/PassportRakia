@@ -271,25 +271,26 @@ function random(id: number, salt: number) {
 .frame-tabs {
   display: inline-grid;
   grid-template-columns: repeat(3, 1fr);
-  border: 1px solid rgba(17, 31, 48, .18);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   overflow: hidden;
-  background: #f3ede1;
+  background: var(--surface);
 }
 
 .frame-tabs button,
 .blink-toggle {
   min-height: 36px;
   border: 0;
-  color: #243148;
+  color: var(--text);
   background: transparent;
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-weight: 500;
   cursor: pointer;
 }
 
 .frame-tabs button {
   min-width: 42px;
-  border-inline-start: 1px solid rgba(17, 31, 48, .14);
+  border-inline-start: 1px solid var(--surface-border);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
@@ -298,15 +299,15 @@ function random(id: number, salt: number) {
 }
 
 .frame-tabs button.active {
-  color: #111827;
-  background: #e7c766;
+  color: var(--bg);
+  background: var(--accent);
 }
 
 .blink-toggle {
-  border: 1px solid rgba(17, 31, 48, .18);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 0 13px;
-  background: #fff8e6;
+  background: var(--surface);
 }
 
 .blink-toggle:disabled {
@@ -624,8 +625,9 @@ function random(id: number, salt: number) {
 
 p {
   margin: 0;
-  color: #3f4d63;
-  font-weight: 800;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 500;
   line-height: 1.45;
 }
 

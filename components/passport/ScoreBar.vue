@@ -24,20 +24,20 @@ defineProps<{ score: number; completed: number; total: number; rank: string }>()
   gap: 8px;
   align-items: center;
   margin: 0 auto 12px;
-  color: #f6e7bc;
+  color: var(--text);
 }
 
 .score-bar > div:not(.rank-badge) {
   min-height: 48px;
-  border: 1px solid rgba(214,184,102,.28);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 7px 10px;
-  background: rgba(4, 14, 31, .58);
+  background: var(--surface);
 }
 
 .score-bar span {
   display: block;
-  color: rgba(246,231,188,.68);
+  color: var(--text-muted);
   font-size: .72rem;
 }
 

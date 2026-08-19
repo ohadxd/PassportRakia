@@ -291,9 +291,10 @@ function save() {
 
 .field-label {
   font-size: .74rem;
-  font-weight: 900;
+  font-weight: 500;
+  font-family: var(--font-body);
   letter-spacing: .04em;
-  color: #7a6322;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -304,26 +305,27 @@ function save() {
   grid-auto-columns: 1fr;
   gap: 0;
   padding: 4px;
-  border: 1px solid rgba(122, 99, 34, .28);
+  border: 1px solid var(--surface-border);
   border-radius: 12px;
-  background: rgba(255, 250, 232, .6);
+  background: var(--surface);
 }
 
 .segmented button {
   min-height: 44px;
   border: 0;
   border-radius: 9px;
-  color: #12243b;
+  color: var(--text);
   background: transparent;
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-weight: 500;
   cursor: pointer;
   transition: background .15s, color .15s, box-shadow .15s;
 }
 
 .segmented button.active {
-  color: #061126;
-  background: #e5c670;
-  box-shadow: 0 2px 8px rgba(93, 67, 18, .26);
+  color: var(--bg);
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(var(--bg-rgb), .26);
 }
 
 /* אזור 3 — לוח עבודה מאוחד */
@@ -331,11 +333,9 @@ function save() {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(122, 99, 34, .22);
+  border: 1px solid var(--surface-border);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 242, .92), rgba(250, 243, 224, .88));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+  background: var(--surface);
 }
 
 .part-tray {
@@ -349,20 +349,21 @@ function save() {
   justify-items: center;
   gap: 2px;
   min-height: 60px;
-  border: 1px solid rgba(18, 36, 59, .16);
+  border: 1px solid var(--surface-border);
   border-radius: 12px;
-  color: #12243b;
-  background: rgba(255, 250, 232, .78);
-  font-weight: 800;
+  color: var(--text);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 500;
   font-size: .82rem;
   cursor: pointer;
   transition: background .15s, box-shadow .15s;
 }
 
 .part-tray button.active {
-  color: #061126;
-  background: #e5c670;
-  box-shadow: inset 0 0 0 1px rgba(93, 67, 18, .3);
+  color: var(--bg);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(var(--bg-rgb), .3);
 }
 
 .part-tray span {
@@ -379,17 +380,18 @@ function save() {
 
 .edit-actions button {
   min-height: 40px;
-  border: 1px solid rgba(122, 99, 34, .28);
+  border: 1px solid var(--surface-border);
   border-radius: 10px;
-  color: #5d4312;
-  background: rgba(255, 250, 232, .85);
-  font-weight: 800;
+  color: var(--text);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 500;
   cursor: pointer;
   transition: background .15s, opacity .15s;
 }
 
 .edit-actions button:hover:not(:disabled) {
-  background: #f0e2bb;
+  background: rgba(var(--accent-rgb), .18);
 }
 
 .edit-actions button:disabled {
@@ -413,15 +415,15 @@ function save() {
   width: 32px;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(18, 36, 59, .18);
+  border: 2px solid var(--surface-border);
   background: var(--swatch);
   cursor: pointer;
-  box-shadow: inset 0 1px 5px rgba(255,255,255,.45), 0 4px 12px rgba(12,24,40,.12);
+  box-shadow: inset 0 1px 5px rgba(255,255,255,.45), 0 4px 12px rgba(var(--bg-rgb), .18);
 }
 
 .swatches button.active {
-  border-color: #061126;
-  outline: 2px solid rgba(214, 184, 102, .9);
+  border-color: var(--bg);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -435,7 +437,7 @@ function save() {
 
 .lab-actions p {
   margin: 0;
-  color: #50617b;
+  color: var(--text-muted);
   line-height: 1.45;
   font-size: .9rem;
 }

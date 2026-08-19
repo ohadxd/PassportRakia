@@ -15,8 +15,8 @@
   padding: clamp(18px, 4vw, 34px);
   overflow: hidden auto;
   border-radius: 10px;
-  border: 1px solid rgba(255, 246, 220, .74);
-  box-shadow: var(--shadow), inset 0 0 0 1px rgba(15, 48, 83, .12);
+  border: 2px solid var(--surface-border);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(var(--bg-rgb), .18);
 }
 
 .page-border {

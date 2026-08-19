@@ -21,8 +21,7 @@ const rotation = computed(() => ((props.seed * 17) % 18) - 9)
   aspect-ratio: 1;
   transform: translate(-50%, -50%) rotate(var(--stamp-rotation));
   z-index: 8;
-  opacity: .9;
-  mix-blend-mode: multiply;
+  opacity: .95;
   pointer-events: none;
 }
 
@@ -37,8 +36,9 @@ const rotation = computed(() => ((props.seed * 17) % 18) - 9)
   inset: 50% 0 auto;
   transform: translateY(-50%);
   text-align: center;
-  color: #0b7d4f;
-  font-weight: 900;
+  color: var(--accent);
+  font-family: var(--font-head);
+  font-weight: 700;
   font-size: clamp(1.15rem, 5vw, 1.9rem);
   letter-spacing: 0;
 }

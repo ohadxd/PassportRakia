@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
 import * as THREE from 'three'
+import { THEME } from '~/data/theme'
 
 const emit = defineEmits<{ ready: [] }>()
 const host = ref<HTMLElement | null>(null)
@@ -26,7 +27,7 @@ function secure(item: string) {
 onMounted(() => {
   if (!host.value) return
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x11213a)
+  scene.background = new THREE.Color(THEME.bg2Hex)
   const camera = new THREE.PerspectiveCamera(45, host.value.clientWidth / host.value.clientHeight, 0.1, 100)
   camera.position.z = 5
   const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -68,6 +69,6 @@ onMounted(() => {
 .velcro { display: grid; gap: 10px; }
 .three-host { height: 220px; border-radius: 8px; overflow: hidden; }
 .object-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.object-grid button { min-height: 40px; border-radius: 8px; background: rgba(255,250,232,.82); border: 1px solid rgba(18,36,59,.16); font-weight: 700; }
-p { margin: 0; color: #53627a; }
+.object-grid button { min-height: 40px; border-radius: 8px; background: var(--surface); border: 1px solid var(--surface-border); font-family: var(--font-body); font-weight: 500; }
+p { margin: 0; color: var(--text-muted); }
 </style>

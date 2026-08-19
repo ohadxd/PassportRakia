@@ -15,7 +15,7 @@ defineProps<{ session: PassportSession }>()
 .pdf-preview {
   border-radius: 8px;
   padding: 24px;
-  border: 1px solid rgba(18,36,59,.14);
+  border: 1px solid var(--surface-border);
 }
 h1 { margin: 0 0 8px; }
 p { margin: 4px 0; }

@@ -13,6 +13,6 @@ const missions = allMissions.filter((mission) => mission.baseScore > 0)
 
 <style scoped>
 .pdf-stamp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-span { display: grid; place-items: center; min-height: 42px; border-radius: 50%; border: 1px dashed #777; }
-.done { color: #0b7d4f; border: 2px solid #0b7d4f; }
+span { display: grid; place-items: center; min-height: 42px; border-radius: 50%; border: 1px dashed var(--surface-border); color: var(--text-muted); }
+.done { color: var(--accent); border: 2px solid var(--accent); }
 </style>

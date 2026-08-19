@@ -102,8 +102,8 @@ h1 {
 }
 
 .error-note {
-  color: #852d2d;
-  background: rgba(155,47,47,.12);
+  color: var(--error-text);
+  background: rgba(var(--red-rgb), .28);
   border-radius: 8px;
   padding: 10px 12px;
 }
