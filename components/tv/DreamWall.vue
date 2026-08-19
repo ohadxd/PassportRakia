@@ -41,11 +41,11 @@ const repeatedDreams = computed(() => {
   max-height: 100dvh;
   overflow: hidden;
   padding: clamp(24px, 3vw, 44px);
-  color: #f9e9bf;
+  color: var(--text);
   background:
-    radial-gradient(circle at 20% 20%, rgba(214,184,102,.14), transparent 30vw),
-    radial-gradient(circle at 80% 10%, rgba(67,129,190,.18), transparent 32vw),
-    linear-gradient(135deg, #030915, #07172f 55%, #041022);
+    radial-gradient(circle at 20% 20%, rgba(var(--accent-rgb), .16), transparent 30vw),
+    radial-gradient(circle at 80% 10%, rgba(var(--highlight-rgb), .16), transparent 32vw),
+    linear-gradient(135deg, var(--bg-deep), var(--bg) 55%, var(--bg-3));
 }
 
 header {
@@ -62,8 +62,9 @@ header img {
 
 header p {
   margin: 0;
-  color: #d8bd6a;
-  font-weight: 900;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 header h1 {
@@ -73,12 +74,13 @@ header h1 {
 
 .live-pill {
   margin-inline-start: auto;
-  border: 1px solid rgba(214,184,102,.45);
+  border: 1px solid rgba(var(--accent-rgb), .45);
   border-radius: 999px;
   padding: 8px 14px;
-  color: #061126;
-  background: #d8bd6a;
-  font-weight: 900;
+  color: var(--bg);
+  background: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -94,17 +96,17 @@ header h1 {
   display: grid;
   place-items: center;
   min-height: 62dvh;
-  border: 1px solid rgba(214,184,102,.28);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
-  color: rgba(249,233,191,.7);
+  color: var(--text-muted);
   font-size: 2rem;
   text-align: center;
   padding: 24px;
 }
 
 .empty.error {
-  color: #ffd7c9;
-  background: rgba(155,47,47,.14);
+  color: var(--error-text);
+  background: rgba(var(--red-rgb), .28);
 }
 
 @keyframes tv-scroll {

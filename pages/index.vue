@@ -192,8 +192,9 @@ async function submit() {
 label {
   display: grid;
   gap: 6px;
-  color: rgba(247,232,191,.86);
-  font-weight: 800;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 500;
   text-align: right;
 }
 
@@ -201,7 +202,7 @@ label {
   width: 160px;
   aspect-ratio: 3 / 4;
   justify-self: center;
-  border: 2px solid rgba(214,184,102,.72);
+  border: 2px solid var(--surface-border);
   border-radius: 8px;
   overflow: hidden;
   background: rgba(255,255,255,.07);
@@ -219,8 +220,9 @@ label {
   height: 100%;
   display: grid;
   place-items: center;
-  color: rgba(247,232,191,.66);
-  font-weight: 800;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .cover-controls {
@@ -228,21 +230,23 @@ label {
 }
 
 .upload-label input {
-  color: rgba(247,232,191,.82);
+  color: var(--text);
 }
 
 .resume-link {
-  color: #f2d57a;
-  font-weight: 800;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .skip-photo-button {
   appearance: none;
   border: 0;
   background: transparent;
-  color: rgba(247,232,191,.84);
+  color: var(--text);
   font: inherit;
-  font-weight: 800;
+  font-family: var(--font-body);
+  font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 4px;
   cursor: pointer;
@@ -255,6 +259,6 @@ label {
 
 .error {
   margin: 0;
-  color: #ffd6c6;
+  color: var(--error-text);
 }
 </style>

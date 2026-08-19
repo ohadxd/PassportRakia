@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { THEME } from '~/data/theme'
 import type { QuizQuestion } from '~/types/mission'
 
 type IssSnapshot = {
@@ -190,7 +191,7 @@ function initScene() {
   const height = Math.max(260, host.value.clientHeight)
 
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x020817)
+  scene.background = new THREE.Color(THEME.bgDeepHex)
 
   camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100)
   camera.position.set(0, 0.2, 3.65)
@@ -548,9 +549,9 @@ function zoomCamera(delta: number) {
   overflow: hidden;
   border-radius: 8px;
   background:
-    radial-gradient(circle at 50% 46%, rgba(71, 149, 214, .18), transparent 32%),
-    #020817;
-  box-shadow: inset 0 0 0 1px rgba(214,184,102,.18);
+    radial-gradient(circle at 50% 46%, rgba(var(--accent-rgb), .18), transparent 32%),
+    var(--bg-deep);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .18);
   touch-action: none;
 }
 
@@ -569,15 +570,16 @@ function zoomCamera(delta: number) {
   place-items: center;
   gap: 10px;
   padding: 22px;
-  color: rgba(247, 232, 191, .95);
-  background: rgba(2, 8, 23, .64);
+  color: var(--text);
+  background: rgba(var(--bg-deep-rgb), .64);
   text-align: center;
-  font-weight: 900;
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .scene-state.error {
-  color: #ffe2d6;
-  background: rgba(35, 8, 10, .78);
+  color: var(--error-text);
+  background: rgba(var(--red-rgb), .28);
 }
 
 .scene-state button {
@@ -585,9 +587,10 @@ function zoomCamera(delta: number) {
   border: 1px solid rgba(255,255,255,.36);
   border-radius: 8px;
   padding: 0 14px;
-  color: #10233d;
-  background: #f5d674;
-  font-weight: 900;
+  color: var(--bg);
+  background: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 .live-panel {
@@ -600,13 +603,14 @@ function zoomCamera(delta: number) {
   min-height: 38px;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(18,36,59,.12);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 8px 10px;
-  color: #314665;
-  background: rgba(255,250,232,.76);
+  color: var(--text);
+  background: var(--surface);
   font-size: .88rem;
-  font-weight: 800;
+  font-family: var(--font-body);
+  font-weight: 500;
   line-height: 1.35;
 }
 

@@ -16,7 +16,7 @@
   margin: 0 auto;
   padding: clamp(20px, 5vw, 34px);
   border-radius: 22px;
-  color: #ead28a;
+  color: var(--text);
   box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.05);
 }
 
@@ -25,7 +25,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2px solid rgba(214,184,102,.74);
+  border: 2px solid var(--surface-border);
   border-radius: 16px;
   padding: clamp(22px, 5vw, 44px);
   text-align: center;
@@ -39,8 +39,9 @@
 
 p {
   margin: 0;
-  color: rgba(234,210,138,.78);
-  font-weight: 800;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 500;
 }
 
 h1 {

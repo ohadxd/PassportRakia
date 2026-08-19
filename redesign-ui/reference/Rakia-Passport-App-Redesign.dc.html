@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #190C4F; }
+    ::selection { background: #00AEEF5C; }
+    a { color: #00AEEF; }
+    a:hover { color: #D6047F; }
+  </style>
+</helmet>
+<div style="direction:rtl; font-family:'Jost',sans-serif; min-height:100vh; background:linear-gradient(160deg,#190C4F 0%,#1D2566 55%,#3B055D 100%); padding:64px 48px 96px; box-sizing:border-box; color:#FFFFFF;">
+
+  <div style="max-width:1280px; margin:0 auto 56px;">
+    <div style="font-family:'Jost',sans-serif; font-weight:500; font-size:18px; letter-spacing:2px; color:#00AEEF; text-transform:uppercase; margin-bottom:14px;">הצעת עיצוב חדשה — דרכון משימת רקיע</div>
+    <h1 style="font-family:'Roboto Slab',serif; font-weight:600; font-size:56px; line-height:1.1; margin:0 0 16px; color:#FFFFFF;">גרסת "תחנת חלל" לדרכון</h1>
+    <p style="font-family:'Jost',sans-serif; font-size:20px; line-height:1.5; color:#FFFFFF; opacity:0.75; max-width:680px; margin:0;">אותם מסכים ורכיבים בדיוק (כריכה, עמוד משימה, חותמת, תג משימה, כפתורים, בר ניקוד) — רק בפלטת הצבעים והטיפוגרפיה שסיפקת במקום הזהב/כחול-כהה/קרם המקוריים.</p>
+  </div>
+
+  <div style="max-width:1320px; margin:0 auto; display:flex; flex-wrap:wrap; gap:44px; justify-content:center; align-items:flex-start;">
+
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="320px,690px">
+        <div style="position:relative; height:100%; box-sizing:border-box; padding:14px; background:radial-gradient(circle at 50% 15%,#3B055D 0%,#190C4F 65%); overflow:hidden;">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent 0 38px, #FFFFFF21 38px 39px); opacity:0.35;"></div>
+          <div style="position:relative; height:100%; display:flex; flex-direction:column; border:2px solid #00AEEF5C; border-radius:16px; padding:22px 18px; box-sizing:border-box;">
+            <div style="text-align:center; margin-bottom:14px;">
+              <div style="width:64px; height:64px; margin:0 auto 12px; border:2px solid #00AEEF; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px #00AEEF5C;">
+                <div style="width:26px; height:26px; border:2px solid #D6047F; border-radius:50%;"></div>
+              </div>
+              <div style="font-size:12px; letter-spacing:2px; color:#00AEEF; text-transform:uppercase;">דרכון רשמי</div>
+              <div style="font-family:'Roboto Slab',serif; font-weight:600; font-size:26px; color:#FFFFFF; margin-top:4px;">משימת רקיע</div>
+            </div>
+            <label style="font-size:13px; color:#FFFFFF; opacity:0.75; margin-bottom:6px;">שם מלא / שם להצגה</label>
+            <input type="text" placeholder="לדוגמה: נועה כהן" style="width:100%; padding:12px; background:#FFFFFF21; border:1px solid #00AEEF5C; border-radius:10px; color:#FFFFFF; font-family:'Jost',sans-serif; font-size:14px; box-sizing:border-box; margin-bottom:14px;">
+            <div style="width:96px; aspect-ratio:3/4; margin:0 auto 14px; border:2px solid #00AEEF5C; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#FFFFFF21;">
+              <span style="font-size:11px; color:#FFFFFF; opacity:0.6; text-align:center;">תמונת<br>פספורט</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:14px;">
+              <button style="flex:1; padding:10px 0; background:transparent; border:1px solid #FFFFFF21; border-radius:10px; color:#FFFFFF; font-size:12px; font-family:'Jost',sans-serif;">פתח מצלמה</button>
+              <button style="flex:1; padding:10px 0; background:transparent; border:1px solid #FFFFFF21; border-radius:10px; color:#FFFFFF; font-size:12px; font-family:'Jost',sans-serif;">צלם</button>
+            </div>
+            <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
+              <button style="width:100%; padding:14px 0; background:#00AEEF; color:#190C4F; border:none; border-radius:12px; font-family:'Jost',sans-serif; font-weight:500; font-size:15px;">מוכן למשימה</button>
+              <div style="text-align:center; font-size:13px; color:#FFFFFF; opacity:0.7; text-decoration:underline;">המשך בלי תמונה</div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="font-size:14px; color:#FFFFFF; opacity:0.6;">1 · כריכה + הזנת פרטים</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="320px,690px">
+        <div style="height:100%; box-sizing:border-box; padding:14px; background:#190C4F;">
+          <div style="height:100%; box-sizing:border-box; display:flex; flex-direction:column; gap:12px;">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:6px; align-items:center;">
+              <div style="border:1px solid #00AEEF5C; border-radius:8px; padding:6px 8px; background:#FFFFFF21;">
+                <div style="font-size:10px; color:#FFFFFF; opacity:0.65;">ניקוד</div>
+                <div style="font-size:15px; color:#FFFFFF; font-weight:500;">240</div>
+              </div>
+              <div style="border:1px solid #00AEEF5C; border-radius:8px; padding:6px 8px; background:#FFFFFF21;">
+                <div style="font-size:10px; color:#FFFFFF; opacity:0.65;">חותמות</div>
+                <div style="font-size:15px; color:#FFFFFF; font-weight:500;">3/10</div>
+              </div>
+              <div style="border:1px solid #D6047F; border-radius:8px; padding:6px 10px; background:#D6047F30; text-align:center;">
+                <div style="font-size:9px; color:#FFFFFF; opacity:0.7;">דירוג</div>
+                <div style="font-size:12px; color:#FFFFFF; font-weight:500;">טייס</div>
+              </div>
+            </div>
+
+            <div style="flex:1; border:2px solid #00AEEF5C; border-radius:14px; background:#FFFFFF21; padding:18px 16px; box-sizing:border-box; display:flex; flex-direction:column; overflow:hidden;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                <div style="width:38px; height:38px; border-radius:50%; background:#00AEEF; color:#190C4F; display:flex; align-items:center; justify-content:center; font-family:'Roboto Slab',serif; font-weight:600; font-size:16px;">3</div>
+                <div style="font-size:13px; color:#FFFFFF; opacity:0.7;">משימה 3 מתוך 10</div>
+              </div>
+              <div style="font-family:'Roboto Slab',serif; font-weight:500; font-size:19px; color:#FFFFFF; line-height:1.4; margin-bottom:18px;">מה מגן על החלליות מפני קרינה קוסמית במסע לחלל?</div>
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <div style="padding:12px 14px; border:1.5px solid #D6047F; border-radius:10px; background:#D6047F30; color:#FFFFFF; font-size:14px; display:flex; justify-content:space-between;"><span>מגן מגנטי מלאכותי</span><span style="opacity:0.6;">א</span></div>
+                <div style="padding:12px 14px; border:1.5px solid #FFFFFF21; border-radius:10px; color:#FFFFFF; font-size:14px; display:flex; justify-content:space-between;"><span>ציפוי אלומיניום</span><span style="opacity:0.6;">ב</span></div>
+                <div style="padding:12px 14px; border:1.5px solid #FFFFFF21; border-radius:10px; color:#FFFFFF; font-size:14px; display:flex; justify-content:space-between;"><span>שכבת מים כפולה</span><span style="opacity:0.6;">ג</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </x-import>
+      <div style="font-size:14px; color:#FFFFFF; opacity:0.6;">2 · עמוד משימה / שאלון</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="320px,690px">
+        <div style="height:100%; box-sizing:border-box; padding:14px; background:#1D2566;">
+          <div style="position:relative; height:100%; border:2px solid #00AEEF5C; border-radius:14px; background:#FFFFFF21; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; overflow:hidden;">
+            <div style="position:absolute; width:190px; height:190px; border:6px solid #00AEEF; border-radius:50%; opacity:0.85; display:flex; align-items:center; justify-content:center; transform:rotate(-8deg); box-shadow:0 0 30px #00AEEF5C;">
+              <span style="font-family:'Roboto Slab',serif; font-weight:600; font-size:22px; color:#00AEEF;">הושלם</span>
+            </div>
+          </div>
+          <div style="text-align:center; margin-top:14px;">
+            <div style="font-size:12px; letter-spacing:2px; color:#00AEEF; text-transform:uppercase; margin-bottom:6px;">חותמת משימה</div>
+            <div style="font-family:'Roboto Slab',serif; font-weight:500; font-size:18px; color:#FFFFFF;">משימה 3 אושרה בהצלחה</div>
+          </div>
+        </div>
+      </x-import>
+      <div style="font-size:14px; color:#FFFFFF; opacity:0.6;">3 · חותמת השלמה</div>
+    </div>
+
+  </div>
+
+  <div style="max-width:1320px; margin:64px auto 0; padding-top:40px; border-top:2px solid #FFFFFF21;">
+    <div style="font-family:'Roboto Slab',serif; font-weight:500; font-size:26px; color:#FFFFFF; margin-bottom:24px;">רכיבים</div>
+    <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+      <button style="padding:0 22px; height:48px; background:#00AEEF; color:#190C4F; border:none; border-radius:12px; font-family:'Jost',sans-serif; font-weight:500; font-size:15px;">כפתור ראשי</button>
+      <button style="padding:0 22px; height:48px; background:transparent; color:#FFFFFF; border:2px solid #FFFFFF21; border-radius:12px; font-family:'Jost',sans-serif; font-size:15px;">כפתור משני</button>
+      <button style="padding:0 22px; height:48px; background:#D6047F; color:#FFFFFF; border:none; border-radius:12px; font-family:'Jost',sans-serif; font-weight:500; font-size:15px;">כפתור מודגש</button>
+      <div style="padding:0 18px; height:48px; display:flex; align-items:center; border:1px dashed #52656D; border-radius:12px; color:#FFFFFF; opacity:0.75; font-size:14px;">דלג</div>
+      <div style="width:44px; height:44px; border-radius:50%; background:#00AEEF; color:#190C4F; display:flex; align-items:center; justify-content:center; font-family:'Roboto Slab',serif; font-weight:600; font-size:16px;">7</div>
+      <div style="padding:8px 12px; border:1px solid #00AEEF5C; border-radius:8px; background:#FFFFFF21; color:#FFFFFF; font-size:13px;">ניקוד <strong>240</strong></div>
+      <div style="padding:8px 12px; border:1px solid #D6047F; border-radius:8px; background:#D6047F30; color:#FFFFFF; font-size:13px;">דירוג <strong>טייס</strong></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

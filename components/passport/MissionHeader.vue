@@ -23,20 +23,20 @@ defineProps<{ order: number; title: string; subtitle?: string }>()
 
 .eyebrow {
   margin: 0 0 4px;
-  color: #896b2c;
+  color: var(--text-muted);
   font-size: .78rem;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 h1 {
   margin: 0;
-  color: #12243b;
+  color: var(--text);
   font-size: clamp(1.25rem, 6vw, 2rem);
   line-height: 1.12;
 }
 
 p {
   margin: 5px 0 0;
-  color: #637087;
+  color: var(--text-muted);
 }
 </style>

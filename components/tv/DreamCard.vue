@@ -22,12 +22,12 @@ defineProps<{ dream: DreamEntry }>()
   grid-template-columns: clamp(92px, 8vw, 128px) 1fr;
   gap: 18px;
   align-items: center;
-  border: 1px solid rgba(214,184,102,.35);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 18px;
-  color: #f9e9bf;
+  color: var(--text);
   background:
-    linear-gradient(135deg, rgba(14, 38, 74, .88), rgba(5, 17, 37, .92)),
+    linear-gradient(135deg, rgba(var(--bg-2-rgb), .88), rgba(var(--bg-deep-rgb), .92)),
     url('~/assets/passport-design/generated_assets/orbit_constellation_decor.svg');
   background-size: cover;
   box-shadow: 0 18px 34px rgba(0,0,0,.25);
@@ -39,14 +39,14 @@ img,
   height: clamp(116px, 10vw, 160px);
   border-radius: 8px;
   object-fit: cover;
-  border: 2px solid rgba(214,184,102,.55);
+  border: 2px solid var(--surface-border);
 }
 
 .avatar {
   display: grid;
   place-items: center;
-  color: rgba(249,233,191,.7);
-  background: rgba(255,255,255,.08);
+  color: var(--text-muted);
+  background: var(--surface);
   font-weight: 900;
 }
 
@@ -63,7 +63,7 @@ p {
 }
 
 span {
-  color: #d8bd6a;
+  color: var(--accent);
   font-weight: 900;
 }
 </style>

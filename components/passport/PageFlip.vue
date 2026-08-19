@@ -173,10 +173,8 @@ function reset() {
 /* נייר דרכון לפן האחורי ולעמוד הנחשף */
 .paper {
   border-radius: 10px;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(214, 184, 102, .12), transparent 60%),
-    linear-gradient(160deg, #fbf3df, #f3e7c8);
-  box-shadow: inset 0 0 0 1px rgba(15, 48, 83, .12);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .15);
 }
 
 .under-page {
@@ -188,8 +186,9 @@ function reset() {
 }
 
 .paper-title {
-  color: rgba(18, 36, 59, .42);
-  font-weight: 800;
+  color: rgba(var(--text-rgb), .35);
+  font-family: var(--font-body);
+  font-weight: 500;
   font-size: 1.1rem;
 }
 
@@ -206,12 +205,12 @@ function reset() {
   /* קדימה: הקצה החופשי בשמאל — הקימור מתעצם שמאלה */
   background: linear-gradient(
     to left,
-    rgba(8, 18, 34, 0) 30%,
-    rgba(8, 18, 34, .16) 54%,
-    rgba(8, 18, 34, .44) 78%,
+    rgba(var(--bg-rgb), 0) 30%,
+    rgba(var(--bg-rgb), .16) 54%,
+    rgba(var(--bg-rgb), .44) 78%,
     rgba(255, 253, 247, .9) 88%,
     rgba(255, 253, 247, .68) 94%,
-    rgba(96, 74, 38, .58) 100%
+    rgba(var(--accent-rgb), .58) 100%
   );
 }
 

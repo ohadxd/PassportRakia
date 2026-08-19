@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import * as THREE from 'three'
+import { THEME } from '~/data/theme'
 
 const emit = defineEmits<{ ready: [] }>()
 const host = ref<HTMLElement | null>(null)
@@ -20,7 +21,7 @@ const tension = ref(58)
 onMounted(() => {
   if (!host.value) return
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x07172f)
+  scene.background = new THREE.Color(THEME.bgHex)
   const camera = new THREE.PerspectiveCamera(45, host.value.clientWidth / host.value.clientHeight, 0.1, 100)
   camera.position.z = 5
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -60,7 +61,7 @@ onMounted(() => {
 
 <style scoped>
 .liquid-demo { display: grid; gap: 10px; }
-.three-host { height: 230px; border-radius: 8px; overflow: hidden; background: #07172f; }
-label { display: grid; gap: 6px; font-weight: 800; color: #233553; }
-p { margin: 0; color: #4f5f78; }
+.three-host { height: 230px; border-radius: 8px; overflow: hidden; background: var(--bg); }
+label { display: grid; gap: 6px; font-family: var(--font-body); font-weight: 500; color: var(--text); }
+p { margin: 0; color: var(--text-muted); }
 </style>
