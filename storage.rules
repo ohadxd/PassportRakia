@@ -16,16 +16,18 @@ service firebase.storage {
         && firestore.get(sessionDoc(sessionId)).data.ownerUid == request.auth.uid;
     }
 
-    function isImage() {
+    function isImage(maxBytes) {
       return request.resource != null
-        && request.resource.contentType.matches('image/.*')
-        && request.resource.size < 6 * 1024 * 1024;
+        && request.resource.size > 0
+        && request.resource.size <= maxBytes
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
 
     function isPdf() {
       return request.resource != null
-        && request.resource.contentType == 'application/pdf'
-        && request.resource.size < 20 * 1024 * 1024;
+        && request.resource.size > 0
+        && request.resource.size <= 12 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
     }
 
     match /mission-videos/{fileName} {
@@ -33,9 +35,15 @@ service firebase.storage {
       allow write: if false;
     }
 
+    match /mission-models/{fileName} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     match /user-photos/{sessionId}/passport-photo.jpg {
       allow read: if signedIn();
-      allow create, update: if ownsSession(sessionId) && isImage();
+      allow create, update: if ownsSession(sessionId)
+        && isImage(2 * 1024 * 1024);
       allow delete: if false;
     }
 
@@ -43,12 +51,13 @@ service firebase.storage {
       allow read: if ownsSession(sessionId);
       allow create, update: if ownsSession(sessionId)
         && fileName in ['patch.png', 'jewelry.png']
-        && isImage();
+        && isImage(4 * 1024 * 1024);
       allow delete: if false;
     }
 
     match /pdf/{sessionId}/rakia-passport.pdf {
-      allow read, create, update: if ownsSession(sessionId) && isPdf();
+      allow read: if ownsSession(sessionId);
+      allow create, update: if ownsSession(sessionId) && isPdf();
       allow delete: if false;
     }
 

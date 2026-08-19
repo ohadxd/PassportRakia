@@ -46,6 +46,7 @@ export default defineNuxtConfig({
       firebaseMessagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
       firebaseAppId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || '',
       firebaseMeasurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
+      firebaseAppCheckRecaptchaKey: process.env.NUXT_PUBLIC_FIREBASE_APPCHECK_RECAPTCHA_KEY || '',
       rakiaArBaseUrl: process.env.NUXT_PUBLIC_RAKIA_AR_BASE_URL || 'https://www.rakiamission.com/'
     }
   },
@@ -71,7 +72,7 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,woff2}'],
-      globIgnores: ['**/mission-videos/**', '**/*.mp4', '**/*.webm', '**/*.mov', '**/babylon-jewelry*.js', '**/HavokPhysics*.wasm'],
+      globIgnores: ['**/mission-videos/**', '**/mission-models/**', '**/*.mp4', '**/*.webm', '**/*.mov', '**/babylon-jewelry*.js', '**/HavokPhysics*.wasm'],
       maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       navigateFallback: '/',
       runtimeCaching: [
@@ -91,7 +92,7 @@ export default defineNuxtConfig({
           options: { cacheName: 'rakia-app-shell' }
         },
         {
-          urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*mission-videos.*$/i,
+          urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/.*mission-(?:videos|models)(?:%2F|\/).*\.mp4(?:\?|$)/i,
           handler: 'NetworkOnly',
           options: { cacheName: 'rakia-video-network-only' }
         }

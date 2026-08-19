@@ -2,10 +2,8 @@
   <div class="mission">
     <MissionHeader :order="mission.order" :title="mission.title" :subtitle="mission.subtitle" />
 
-    <div v-if="mission.wallContentSummary?.length" class="mission-copy summary-box">
-      <ul>
-        <li v-for="line in mission.wallContentSummary" :key="line">{{ line }}</li>
-      </ul>
+    <div v-if="mission.wallContentSummary?.length" class="mission-copy summary-copy">
+      <p v-for="line in mission.wallContentSummary" :key="line">{{ line }}</p>
     </div>
 
     <p v-if="progress?.status === 'skipped'" class="skip-note">אין חותמת לתחנה שדולגה. אפשר להשלים אותה עכשיו ולקבל חותמת.</p>
@@ -17,8 +15,18 @@
       <button class="primary-button" type="button" @click="completeNow(1)">המשך</button>
     </section>
 
+    <section v-else-if="mission.type === 'wall-video-confirmation'" class="wall-video-panel">
+      <div class="wall-video-callout">
+        <strong>הסרטון מוקרן במסך התערוכה</strong>
+        <span>צפו בטלוויזיה שעל הקיר, ואז אשרו כאן כדי להמשיך בדרכון.</span>
+      </div>
+      <button class="primary-button" type="button" @click="completeNow(1)">{{ mission.actionText || 'ראיתי' }}</button>
+    </section>
+
     <section v-else-if="isVideoMission" class="video-panel">
-      <video v-if="videoUrl" :src="videoUrl" controls playsinline preload="metadata" @play="start" @error="videoError = true" />
+      <video v-if="videoUrl" :key="videoKey" controls playsinline preload="metadata" @play="start" @error="videoError = true">
+        <source :key="videoKey" :src="videoUrl" type="video/mp4" />
+      </video>
       <div v-else class="video-placeholder">
         <strong>וידאו מאחסון Firebase</strong>
         <span>{{ mission.video?.storagePath }}</span>
@@ -29,6 +37,7 @@
         v-if="mission.type === 'video-quiz'"
         :questions="quizQuestions"
         :started="quizStarted"
+        :current-index="quizIndex"
         :message="quizMessage"
         @start="startQuiz"
         @answer="answerQuiz"
@@ -39,11 +48,8 @@
     </section>
 
     <section v-else-if="mission.type === 'ar-confirmation'" class="ar-panel">
-      <a class="ar-link" :href="arUrl" target="_blank" rel="noreferrer">פתחו את אפליקציית רקיע</a>
-      <div v-if="mission.id === 'countdown-ar'" class="countdown">
-        <button type="button" @click="tickCountdown">{{ countdown > 0 ? countdown : 'שיגור!' }}</button>
-      </div>
-      <button class="primary-button" type="button" :disabled="mission.id === 'countdown-ar' && countdown > 0" @click="completeNow(1)">
+      <a class="ar-link" :href="arUrl" target="_blank" rel="noreferrer">{{ arLinkLabel }}</a>
+      <button class="primary-button" type="button" @click="completeNow(1)">
         {{ mission.actionText || 'סיימתי' }}
       </button>
     </section>
@@ -58,6 +64,7 @@
       <QuizBlock
         :questions="quizQuestions"
         :started="quizStarted"
+        :current-index="quizIndex"
         :message="quizMessage"
         :disabled="mission.type === 'confirmation-quiz' && checkedControls.length < controlChecks.length"
         @start="startQuiz"
@@ -107,12 +114,18 @@
     </section>
 
     <section v-else-if="mission.type === 'three-info-quiz'" class="three-panel">
-      <ISSScene v-if="mission.id === 'iss-station'" @ready="sceneReady = true" />
-      <EarthWindowScene v-else-if="mission.id === 'earth-window'" @ready="sceneReady = true" />
+      <ISSScene v-if="mission.id === 'iss-station'" :model-url="mission.model?.url" @ready="sceneReady = true" />
+      <EarthWindowScene
+        v-else-if="mission.id === 'earth-window'"
+        :model-url="mission.model?.url"
+        @ready="sceneReady = true"
+        @location-question="setDynamicQuestion"
+      />
       <LiquidOpticsScene v-else @ready="sceneReady = true" />
       <QuizBlock
         :questions="quizQuestions"
         :started="quizStarted"
+        :current-index="quizIndex"
         :message="quizMessage"
         :disabled="!sceneReady"
         @start="startQuiz"
@@ -126,6 +139,7 @@
       <QuizBlock
         :questions="quizQuestions"
         :started="quizStarted"
+        :current-index="quizIndex"
         :message="quizMessage"
         :disabled="!sceneReady"
         @start="startQuiz"
@@ -160,8 +174,8 @@
         <div v-else class="silhouette">רקיע</div>
         <div>
           <strong>{{ session.name }}</strong>
-          <span>{{ session.rank }}</span>
-          <span>{{ session.totalScore }} נקודות</span>
+          <span class="final-score-label">ניקוד סופי</span>
+          <span class="final-score">{{ session.totalScore }} נקודות</span>
         </div>
       </div>
       <div class="stamp-grid">
@@ -173,16 +187,13 @@
     </section>
 
     <Stamp v-if="progress?.status === 'completed' && mission.baseScore > 0" :seed="mission.order" :animate="animateStamp" />
-
-    <footer v-if="mission.allowSkip && progress?.status !== 'completed'" class="mission-footer">
-      <SkipButton @click="$emit('skip')" />
-    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { CreationRecord, MissionConfig, MissionProgress, PassportSession } from '~/types/mission'
+import type { CreationRecord, MissionConfig, MissionProgress, PassportSession, QuizQuestion } from '~/types/mission'
 import { missions } from '~/data/missions'
+import QuizBlock from './QuizBlock.vue'
 
 const props = defineProps<{
   mission: MissionConfig
@@ -202,9 +213,11 @@ const emit = defineEmits<{
 const firebase = useFirebase()
 const profanity = useProfanityFilter()
 const runtime = useRuntimeConfig()
+const IOS_RAKIA_APP_URL = 'https://apps.apple.com/fi/app/rakia/id6504777792'
 
 const videoUrl = ref('')
 const videoError = ref(false)
+const isIosDevice = ref(false)
 const quizStarted = ref(false)
 const quizIndex = ref(0)
 const selectedAnswers = ref<MissionProgress['answers']>([])
@@ -216,7 +229,7 @@ const classificationStarted = ref(false)
 const sortOrder = ref([...(props.mission.sortItems || [])].sort((a, b) => b.correctOrder - a.correctOrder))
 const classifications = reactive<Record<string, string>>({})
 const sceneReady = ref(false)
-const countdown = ref(10)
+const dynamicQuestions = ref<QuizQuestion[] | null>(null)
 const dream = ref('')
 const dreamError = ref('')
 const savedMessage = ref('')
@@ -226,12 +239,21 @@ const controlChecks = ['תקשורת תקינה', 'מיקום ידוע', 'צוו
 
 const stampMissions = computed(() => missions.filter((mission) => mission.baseScore > 0))
 const isVideoMission = computed(() => ['intro-video', 'video-quiz', 'video-confirmation'].includes(props.mission.type))
-const arUrl = computed(() => `${runtime.public.rakiaArBaseUrl.replace(/\/$/, '')}/${props.mission.arSlug || props.mission.id}`)
+const webArUrl = computed(() => `${runtime.public.rakiaArBaseUrl.replace(/\/$/, '')}/${props.mission.arSlug || props.mission.id}`)
+const arUrl = computed(() => isIosDevice.value ? IOS_RAKIA_APP_URL : webArUrl.value)
+const arLinkLabel = computed(() => isIosDevice.value ? 'פתחו באפליקציית רקיע לאייפון' : 'פתחו את אפליקציית רקיע')
+const videoKey = computed(() => `${props.mission.id}:${videoUrl.value || props.mission.video?.storagePath || ''}`)
 const quizQuestions = computed(() => {
   const questions = props.mission.questions || []
-  if (props.mission.id === 'rakia-mission') return questions.slice(0, 3)
+  if (props.mission.id === 'earth-window' && dynamicQuestions.value?.length) {
+    return [...questions, ...dynamicQuestions.value]
+  }
   if (props.mission.id === 'rakia-numbers') return questions.slice(0, 4)
   return questions
+})
+
+onMounted(() => {
+  isIosDevice.value = detectIosDevice()
 })
 
 watch(() => props.mission.id, resetState, { immediate: true })
@@ -243,6 +265,7 @@ watch(() => props.progress?.status, (status) => {
 })
 
 async function resetState() {
+  const missionId = props.mission.id
   videoUrl.value = ''
   videoError.value = false
   quizStarted.value = false
@@ -256,14 +279,35 @@ async function resetState() {
   sortOrder.value = [...(props.mission.sortItems || [])].sort((a, b) => ((a.correctOrder * 7) % 11) - ((b.correctOrder * 7) % 11))
   Object.keys(classifications).forEach((key) => delete classifications[key])
   sceneReady.value = false
-  countdown.value = 10
+  dynamicQuestions.value = null
   dream.value = ''
   dreamError.value = ''
   savedMessage.value = ''
   checkedControls.value = []
-  if (props.mission.video?.storagePath) {
-    videoUrl.value = await firebase.getStorageUrl(props.mission.video.storagePath)
+  const video = props.mission.video
+  if (video?.url) {
+    videoUrl.value = video.url
+  } else if (video?.storagePath) {
+    const resolvedUrl = await firebase.getStorageUrl(video.storagePath)
+    if (props.mission.id === missionId) videoUrl.value = resolvedUrl
   }
+}
+
+function detectIosDevice() {
+  if (typeof navigator === 'undefined') return false
+  const agent = navigator.userAgent || ''
+  const platform = navigator.platform || ''
+  return /iPad|iPhone|iPod/i.test(agent) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
+function setDynamicQuestion(question: QuizQuestion) {
+  if (quizStarted.value) return
+  dynamicQuestions.value = [question]
+  quizStarted.value = false
+  quizIndex.value = 0
+  selectedAnswers.value = []
+  attempts.value = 0
+  quizMessage.value = ''
 }
 
 function start() {
@@ -348,11 +392,6 @@ function submitClassification() {
   completeNow(attempts.value)
 }
 
-function tickCountdown() {
-  start()
-  countdown.value = Math.max(0, countdown.value - 1)
-}
-
 async function saveCreation(type: 'patch' | 'jewelry', event: { imageDataUrl: string; data: Record<string, unknown> }) {
   start()
   const creation = await firebase.saveCreation({
@@ -397,42 +436,6 @@ async function saveDream() {
 }
 </script>
 
-<script lang="ts">
-export default {
-  components: {
-    QuizBlock: {
-      props: ['questions', 'started', 'message', 'disabled'],
-      emits: ['start', 'answer'],
-      computed: {
-        question() {
-          return this.questions?.[0]
-        }
-      },
-      data() {
-        return { index: 0 }
-      },
-      watch: {
-        questions() { this.index = 0 }
-      },
-      template: `
-        <div class="quiz-block">
-          <button v-if="!started" class="primary-button" type="button" :disabled="disabled" @click="$emit('start')">התחל שאלון</button>
-          <template v-else>
-            <h2>{{ questions[index]?.text }}</h2>
-            <div class="choice-grid">
-              <button v-for="(answer, answerIndex) in questions[index]?.answers" :key="answer" class="choice-button" type="button" @click="$emit('answer', answerIndex); if (answerIndex === questions[index]?.correctIndex && index < questions.length - 1) setTimeout(() => index++, 430)">
-                {{ answer }}
-              </button>
-            </div>
-            <p v-if="message">{{ message }}</p>
-          </template>
-        </div>
-      `
-    }
-  }
-}
-</script>
-
 <style scoped>
 .mission {
   min-height: 100%;
@@ -443,14 +446,23 @@ export default {
   padding-bottom: 54px;
 }
 
-.summary-box {
-  border: 1px solid rgba(18, 36, 59, .12);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: rgba(255, 251, 236, .64);
+.summary-copy {
+  display: grid;
+  gap: 7px;
+  padding: 2px 0;
+  padding-inline-start: 12px;
+  border-inline-start: 3px solid rgba(201, 164, 90, .72);
+}
+
+.summary-copy p {
+  margin: 0;
+  color: #314665;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .transition-panel,
+.wall-video-panel,
 .video-panel,
 .ar-panel,
 .quiz-panel,
@@ -467,6 +479,24 @@ export default {
   margin: 0;
   font-size: clamp(1.8rem, 9vw, 3.2rem);
   color: #12243b;
+}
+
+.wall-video-callout {
+  display: grid;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: #f5e5b7;
+  background: linear-gradient(135deg, #07172f, #132f55);
+  box-shadow: inset 0 0 0 1px rgba(214,184,102,.26);
+}
+
+.wall-video-callout strong {
+  font-size: 1.05rem;
+}
+
+.wall-video-callout span {
+  color: rgba(245, 229, 183, .8);
 }
 
 video,
@@ -504,24 +534,6 @@ video,
   background: #0b2345;
   border: 1px solid rgba(214,184,102,.38);
   font-weight: 800;
-}
-
-.countdown {
-  display: grid;
-  place-items: center;
-  min-height: 160px;
-  border-radius: 8px;
-  background: radial-gradient(circle, rgba(214,184,102,.23), rgba(7,23,47,.08));
-}
-
-.countdown button {
-  width: 118px;
-  height: 118px;
-  border-radius: 50%;
-  color: #061126;
-  background: #e7cf83;
-  font-size: 2rem;
-  font-weight: 900;
 }
 
 .checks {
@@ -628,6 +640,19 @@ video,
   display: block;
 }
 
+.final-score-label {
+  margin-top: 7px;
+  color: #896b2c;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.final-score {
+  color: #10233d;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
 .stamp-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -661,9 +686,4 @@ video,
 .error-note { color: #852d2d; background: rgba(155,47,47,.12); }
 .success-note { color: #0b6a43; background: rgba(11,125,79,.12); }
 
-.mission-footer {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
 </style>

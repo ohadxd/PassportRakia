@@ -16,65 +16,269 @@ service cloud.firestore {
         && get(sessionPath(sessionId)).data.ownerUid == request.auth.uid;
     }
 
-    function createsOwnSession(sessionId) {
-      return signedIn()
-        && request.resource.data.id == sessionId
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 1
-        && request.resource.data.name.size() <= 60;
+    function hasOptional(data, field) {
+      return data.keys().hasAny([field]);
+    }
+
+    function requiredString(data, field, maxSize) {
+      return data[field] is string
+        && data[field].size() >= 1
+        && data[field].size() <= maxSize;
+    }
+
+    function optionalString(data, field, maxSize) {
+      return !hasOptional(data, field)
+        || (data[field] is string && data[field].size() <= maxSize);
+    }
+
+    function validIsoString(data, field) {
+      return data[field] is string
+        && data[field].size() >= 10
+        && data[field].size() <= 40;
+    }
+
+    function validSession(sessionId, data) {
+      return data.keys().hasOnly([
+          'id',
+          'ownerUid',
+          'name',
+          'photoUrl',
+          'photoStoragePath',
+          'createdAt',
+          'updatedAt',
+          'currentPageIndex',
+          'totalScore',
+          'rank',
+          'completedCount',
+          'skippedCount',
+          'lastActiveAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'ownerUid',
+          'name',
+          'createdAt',
+          'updatedAt',
+          'currentPageIndex',
+          'totalScore',
+          'rank',
+          'completedCount',
+          'skippedCount',
+          'lastActiveAt'
+        ])
+        && data.id == sessionId
+        && data.ownerUid == request.auth.uid
+        && requiredString(data, 'name', 60)
+        && validIsoString(data, 'createdAt')
+        && validIsoString(data, 'updatedAt')
+        && validIsoString(data, 'lastActiveAt')
+        && data.currentPageIndex is int
+        && data.currentPageIndex >= 0
+        && data.currentPageIndex <= 60
+        && data.totalScore is number
+        && data.totalScore >= 0
+        && data.totalScore <= 10000
+        && requiredString(data, 'rank', 80)
+        && data.completedCount is int
+        && data.completedCount >= 0
+        && data.completedCount <= 60
+        && data.skippedCount is int
+        && data.skippedCount >= 0
+        && data.skippedCount <= 60
+        && optionalString(data, 'photoUrl', 2048)
+        && (!hasOptional(data, 'photoStoragePath')
+          || data.photoStoragePath == 'user-photos/' + sessionId + '/passport-photo.jpg');
+    }
+
+    function validProgress(missionId, data) {
+      return data.keys().hasOnly([
+          'missionId',
+          'order',
+          'status',
+          'score',
+          'baseScore',
+          'speedBonus',
+          'attempts',
+          'stamped',
+          'startedAt',
+          'completedAt',
+          'skippedAt',
+          'answers'
+        ])
+        && data.keys().hasAll([
+          'missionId',
+          'order',
+          'status',
+          'score',
+          'baseScore',
+          'speedBonus',
+          'attempts',
+          'stamped'
+        ])
+        && data.missionId == missionId
+        && data.order is int
+        && data.order >= 1
+        && data.order <= 60
+        && data.status in ['not-started', 'started', 'completed', 'skipped']
+        && data.score is number
+        && data.score >= 0
+        && data.score <= 10000
+        && data.baseScore is number
+        && data.baseScore >= 0
+        && data.baseScore <= 1000
+        && data.speedBonus is number
+        && data.speedBonus >= 0
+        && data.speedBonus <= 1000
+        && data.attempts is int
+        && data.attempts >= 0
+        && data.attempts <= 200
+        && data.stamped is bool
+        && optionalString(data, 'startedAt', 40)
+        && optionalString(data, 'completedAt', 40)
+        && optionalString(data, 'skippedAt', 40)
+        && (!hasOptional(data, 'answers')
+          || (data.answers is list && data.answers.size() <= 80));
+    }
+
+    function safeDreamText(text) {
+      return !(text.matches('.*(זין|חרא|מניאק|בן זונה|בת זונה|שרמוטה|מטומטם|דפוק|fuck|shit|bitch|asshole|bastard|كس|خرا|كلب|شرموطة).*'));
+    }
+
+    function validDream(dreamId, data) {
+      return data.keys().hasOnly([
+          'id',
+          'sessionId',
+          'name',
+          'photoUrl',
+          'dream',
+          'scoreAtSubmit',
+          'approved',
+          'rejectedReason',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'sessionId',
+          'name',
+          'dream',
+          'scoreAtSubmit',
+          'approved',
+          'createdAt'
+        ])
+        && data.id == dreamId
+        && data.sessionId == dreamId
+        && requiredString(data, 'name', 60)
+        && optionalString(data, 'photoUrl', 2048)
+        && requiredString(data, 'dream', 120)
+        && data.scoreAtSubmit is number
+        && data.scoreAtSubmit >= 0
+        && data.scoreAtSubmit <= 10000
+        && data.approved is bool
+        && validIsoString(data, 'createdAt')
+        && (
+          (data.approved == true
+            && safeDreamText(data.dream)
+            && !hasOptional(data, 'rejectedReason'))
+          || (data.approved == false
+            && optionalString(data, 'rejectedReason', 160))
+        );
+    }
+
+    function validCreation(creationId, data) {
+      return data.keys().hasOnly([
+          'id',
+          'sessionId',
+          'type',
+          'imageUrl',
+          'storagePath',
+          'data',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'sessionId',
+          'type',
+          'imageUrl',
+          'storagePath',
+          'data',
+          'createdAt'
+        ])
+        && data.id == creationId
+        && data.type in ['patch', 'jewelry']
+        && creationId == data.sessionId + '-' + data.type
+        && requiredString(data, 'imageUrl', 2048)
+        && data.storagePath == 'creations/' + data.sessionId + '/' + data.type + '.png'
+        && data.data is map
+        && data.data.keys().size() <= 60
+        && validIsoString(data, 'createdAt');
+    }
+
+    function validPdfExport(sessionId, data) {
+      return data.keys().hasOnly(['sessionId', 'createdAt', 'updatedAt', 'storagePath'])
+        && data.keys().hasAll(['sessionId'])
+        && data.sessionId == sessionId
+        && optionalString(data, 'createdAt', 40)
+        && optionalString(data, 'updatedAt', 40)
+        && (!hasOptional(data, 'storagePath')
+          || data.storagePath == 'pdf/' + sessionId + '/rakia-passport.pdf');
     }
 
     match /sessions/{sessionId} {
-      allow create: if createsOwnSession(sessionId);
+      allow create: if signedIn()
+        && validSession(sessionId, request.resource.data);
+
       allow read: if ownsSession(sessionId);
+
       allow update: if ownsSession(sessionId)
         && request.resource.data.ownerUid == resource.data.ownerUid
-        && request.resource.data.id == resource.data.id;
+        && request.resource.data.id == resource.data.id
+        && validSession(sessionId, request.resource.data);
+
       allow delete: if false;
 
       match /missionProgress/{missionId} {
         allow read: if ownsSession(sessionId);
+
         allow create, update: if ownsSession(sessionId)
-          && request.resource.data.missionId == missionId
-          && request.resource.data.order is int
-          && request.resource.data.status in ['not-started', 'started', 'completed', 'skipped']
-          && request.resource.data.score is number
-          && request.resource.data.score >= 0;
+          && validProgress(missionId, request.resource.data);
+
         allow delete: if false;
       }
     }
 
     match /dreams/{dreamId} {
       allow read: if resource.data.approved == true;
+
       allow create: if signedIn()
-        && request.resource.data.sessionId is string
-        && ownsSession(request.resource.data.sessionId)
-        && request.resource.data.name is string
-        && request.resource.data.name.size() <= 60
-        && request.resource.data.dream is string
-        && request.resource.data.dream.size() >= 1
-        && request.resource.data.dream.size() <= 120
-        && request.resource.data.approved is bool
-        && request.resource.data.scoreAtSubmit is number;
-      allow update, delete: if false;
+        && validDream(dreamId, request.resource.data)
+        && ownsSession(request.resource.data.sessionId);
+
+      allow update: if signedIn()
+        && resource.data.sessionId == request.resource.data.sessionId
+        && validDream(dreamId, request.resource.data)
+        && ownsSession(request.resource.data.sessionId);
+
+      allow delete: if false;
     }
 
     match /creations/{creationId} {
-      allow read: if signedIn() && ownsSession(resource.data.sessionId);
+      allow read: if signedIn()
+        && resource.data.sessionId is string
+        && ownsSession(resource.data.sessionId);
+
       allow create, update: if signedIn()
-        && request.resource.data.sessionId is string
-        && ownsSession(request.resource.data.sessionId)
-        && request.resource.data.type in ['patch', 'jewelry']
-        && request.resource.data.imageUrl is string
-        && request.resource.data.storagePath is string;
+        && validCreation(creationId, request.resource.data)
+        && ownsSession(request.resource.data.sessionId);
+
       allow delete: if false;
     }
 
     match /pdfExports/{sessionId} {
       allow read: if ownsSession(sessionId);
+
       allow create, update: if ownsSession(sessionId)
-        && request.resource.data.sessionId == sessionId;
+        && validPdfExport(sessionId, request.resource.data);
+
       allow delete: if false;
     }
 

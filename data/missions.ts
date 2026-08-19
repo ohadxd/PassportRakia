@@ -6,6 +6,9 @@ const v = (source: (typeof videoSources)[keyof typeof videoSources]) => ({
   loadMode: 'on-demand' as const
 })
 
+const firebaseStorageUrl = (bucket: string, path: string, token: string) =>
+  `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(path)}?alt=media&token=${token}`
+
 export const missions: MissionConfig[] = [
   {
     id: 'ready',
@@ -20,11 +23,10 @@ export const missions: MissionConfig[] = [
     id: 'intro-mission-video',
     order: 2,
     title: 'סרטון משימה',
-    type: 'intro-video',
+    type: 'wall-video-confirmation',
     baseScore: 40,
     allowSkip: true,
-    actionText: 'ראיתי',
-    video: v(videoSources.introMission),
+    actionText: 'ראיתי בטלוויזיה',
     wallContentSummary: ['צפו בסרטון הפתיחה של משימת רקיע והמשיכו לתחנה הראשונה.']
   },
   {
@@ -35,16 +37,13 @@ export const missions: MissionConfig[] = [
     baseScore: 120,
     allowSkip: true,
     estimatedSeconds: 90,
-    wallContentSummary: [
-      'משימת רקיע שוגרה לחלל ב-8 באפריל 2022 כחלק ממשימת AX-1.',
-      'זו הייתה טיסת החלל הפרטית הראשונה אל תחנת החלל הבינלאומית ובה השתתף איתן סטיבה.',
-      'המשימה נמשכה 17 ימים וכללה ניסויים מדעיים, אמנות ופעילות חינוכית בעברית מהחלל.'
-    ],
+    wallContentSummary: ['קראו את הטקסט שעל הקיר. התשובות לשאלון נמצאות שם.'],
     questions: [
-      { id: 'rakia-q1', text: 'באיזה תאריך שוגרה משימת רקיע לחלל?', answers: ['1 באפריל 2022', '8 באפריל 2022', '17 באפריל 2022', '8 באפריל 2023'], correctIndex: 1 },
-      { id: 'rakia-q2', text: 'משימת רקיע הייתה חלק מאיזו משימה?', answers: ['Apollo 11', 'AX-1', 'Artemis I', 'Crew-1'], correctIndex: 1 },
-      { id: 'rakia-q3', text: 'מי היה האסטרונאוט הישראלי שהשתתף במשימת רקיע?', answers: ['אילן רמון', 'איתן סטיבה', 'יורי גגארין', 'סקוט קלי'], correctIndex: 1 },
-      { id: 'rakia-q4', text: 'כמה ימים נמשכה משימת רקיע?', answers: ['7 ימים', '10 ימים', '17 ימים', '30 ימים'], correctIndex: 2 }
+      { id: 'rakia-q1', text: 'באיזה תאריך שוגרה משימת רקיע לחלל לפי הקיר?', answers: ['1 באפריל 2022', '8 באפריל 2022', '17 באפריל 2022', '8 באפריל 2023'], correctIndex: 1 },
+      { id: 'rakia-q2', text: 'משימת רקיע שוגרה כחלק מאיזו משימה?', answers: ['AX-1', 'Apollo 11', 'Artemis I', 'Crew-1'], correctIndex: 0 },
+      { id: 'rakia-q3', text: 'כמה אסטרונאוטים היו בטיסה הפרטית הראשונה אל תחנת החלל הבינלאומית?', answers: ['2', '4', '8', '17'], correctIndex: 1 },
+      { id: 'rakia-q4', text: 'כמה ימים ארכה משימת רקיע?', answers: ['7 ימים', '10 ימים', '17 ימים', '30 ימים'], correctIndex: 2 },
+      { id: 'rakia-q5', text: 'מה המשימה ממשיכה לקדם לפי הטקסט שעל הקיר?', answers: ['את תחום החלל בישראל', 'תחרות בישול בחלל', 'בניית עיר על הירח', 'משחק מחשב חדש'], correctIndex: 0 }
     ]
   },
   {
@@ -55,11 +54,10 @@ export const missions: MissionConfig[] = [
     baseScore: 160,
     allowSkip: true,
     estimatedSeconds: 120,
-    wallContentSummary: [
-      'תחנת החלל הבינלאומית היא מעבדה מרחפת גדולה המקיפה את כדור הארץ בערך כל שעה וחצי.',
-      'אסטרונאוטים רואים כ-16 זריחות ושקיעות ביממה, והיא בערך בגודל של מגרש כדורגל.',
-      'התחנה כוללת מעבדות, אזורי מחיה, קופולה, פאנלים סולאריים וחלליות עוגנות.'
-    ],
+    model: {
+      storagePath: 'mission-models/iss.glb',
+      url: firebaseStorageUrl('basicapp-dd04f.firebasestorage.app', 'mission-models/iss.glb', '04c6d442-9437-4176-b1f1-2438d1096c00')
+    },
     questions: [
       { id: 'iss-q1', text: 'בערך כל כמה זמן מקיפה תחנת החלל את כדור הארץ?', answers: ['כל 10 דקות', 'כל שעה וחצי', 'פעם ביום', 'פעם בשבוע'], correctIndex: 1 },
       { id: 'iss-q2', text: 'מה הגודל המשוער של תחנת החלל הבינלאומית?', answers: ['כמו מכונית משפחתית', 'כמו חדר שינה', 'בערך כמו מגרש כדורגל', 'כמו עיר קטנה'], correctIndex: 2 },
@@ -132,37 +130,60 @@ export const missions: MissionConfig[] = [
     allowSkip: true,
     actionText: 'סיימתי',
     arSlug: 'countdown',
-    wallContentSummary: ['פתחו את משימת הספירה לאחור באפליקציית רקיע, ואז הפעילו כאן ספירה אינטראקטיבית עד שיגור.']
+    wallContentSummary: ['כדי לברוח מכבידת כדור הארץ צריך להגיע לכ-11.2 ק״מ בשנייה.']
   },
   {
     id: 'space-hygiene',
     order: 10,
     title: 'היגיינה בחלל',
-    type: 'quiz',
+    type: 'video-quiz',
     baseScore: 120,
     allowSkip: true,
     estimatedSeconds: 90,
-    wallContentSummary: [
-      'בתחנת החלל גם המים מרחפים, ולכן צחצוח שיניים ומקלחת דורשים התאמות.',
-      'אסטרונאוטים לוגמים מים, מצחצחים, ובולעים את המשחה.',
-      'לשמירה על היגיינה משתמשים בסבון מיוחד, שקית מים ומגבת.'
-    ],
+    video: v(videoSources.spaceHygiene),
     questions: [
-      { id: 'hygiene-q1', text: 'למה אי אפשר פשוט לפתוח ברז ולצחצח שיניים כמו בכדור הארץ?', answers: ['כי בתחנת החלל אין מברשות שיניים', 'כי המים מרחפים ולא זורמים לכיור כמו בכדור הארץ', 'כי אסור להשתמש במשחת שיניים', 'כי אין אור בתחנה'], correctIndex: 1 },
-      { id: 'hygiene-q2', text: 'מה עושים אסטרונאוטים בסיום צחצוח השיניים לפי הקיר?', answers: ['זורקים את המים מהחלון', 'בולעים את המשחה', 'שוטפים בכיור רגיל', 'מחכים שהמשחה תתאדה'], correctIndex: 1 },
-      { id: 'hygiene-q3', text: 'במה משתמשים כדי לשמור על היגיינה כשאין מקלחת רגילה?', answers: ['סבון מיוחד, שקית מים ומגבת', 'חול יבש', 'גז הליום', 'רק אוויר חם'], correctIndex: 0 }
+      { id: 'hygiene-q1', text: 'איך מצחצחים שיניים בלי מים?', answers: ['לוגמים שלוק מים, מצחצחים ובסיום בולעים את המשחה', 'פותחים ברז ומחכים שהמים יזרמו לכיור', 'שוטפים את הפה במקלחת רגילה', 'משתמשים רק באוויר בלי מים ומשחה'], correctIndex: 0 },
+      { id: 'hygiene-q2', text: 'מה קורה למים בתחנת החלל?', answers: ['הם מרחפים', 'הם תמיד זורמים למטה', 'הם נעלמים מיד', 'הם הופכים לאבן'], correctIndex: 0 },
+      { id: 'hygiene-q3', text: 'מה עושים בסיום הצחצוח?', answers: ['בולעים את המשחה', 'יורקים לכיור רגיל', 'שופכים מים על הרצפה', 'מחכים שהמשחה תתאדה'], correctIndex: 0 }
+    ]
+  },
+  {
+    id: 'space-toilet',
+    order: 11,
+    title: 'שירותים בחלל',
+    type: 'video-quiz',
+    baseScore: 100,
+    allowSkip: true,
+    estimatedSeconds: 80,
+    video: v(videoSources.hygieneToilet),
+    wallContentSummary: ['במיקרו-כבידה פסולת לא נופלת למטה. שירותים בתחנת החלל משתמשים בזרימת אוויר ושאיבה.'],
+    questions: [
+      { id: 'toilet-q1', text: 'למה שירותים בתחנת החלל לא עובדים כמו שירותים רגילים בכדור הארץ?', answers: ['כי אין נפילה רגילה של פסולת כלפי מטה במיקרו-כבידה', 'כי אין אסטרונאוטים בתחנה', 'כי המים רותחים מיד', 'כי השירותים נמצאים מחוץ לחללית'], correctIndex: 0 },
+      { id: 'toilet-q2', text: 'מה עוזר לכוון פסולת בשירותים בחלל?', answers: ['זרימת אוויר/שאיבה', 'מגנט ענק', 'אור שמש', 'פאנל סולארי'], correctIndex: 0 }
+    ]
+  },
+  {
+    id: 'space-shower',
+    order: 12,
+    title: 'מקלחת בחלל',
+    type: 'video-quiz',
+    baseScore: 100,
+    allowSkip: true,
+    estimatedSeconds: 80,
+    video: v(videoSources.hygieneShower),
+    questions: [
+      { id: 'shower-q1', text: 'למה מים לא זורמים כמו במקלחת רגילה בחלל?', answers: ['במיקרו-כבידה המים לא זורמים כלפי מטה', 'כי המים כבדים מדי', 'כי אין סבון בתחנת החלל', 'כי האסטרונאוטים תמיד נמצאים בחוץ'], correctIndex: 0 },
+      { id: 'shower-q2', text: 'במה משתמשים כדי לשמור על היגיינה?', answers: ['סבון מיוחד, שקית מים ומגבת', 'חול יבש ומאוורר', 'מי ים ומברשת גדולה', 'אבקת כביסה רגילה'], correctIndex: 0 }
     ]
   },
   {
     id: 'microgravity-velcro',
-    order: 11,
+    order: 13,
     title: 'מיקרו-כבידה',
-    type: 'three-game',
+    type: 'quiz',
     baseScore: 180,
     allowSkip: true,
     estimatedSeconds: 130,
-    video: v(videoSources.microgravity),
-    wallContentSummary: ['במיקרו-כבידה חפצים יכולים לרחף. סקוץ׳ / ולקרו עוזר להצמיד אותם כדי שלא יאבדו.'],
     questions: [
       { id: 'microgravity-q1', text: 'למה סקוץ׳ חשוב בתחנת החלל?', answers: ['כדי לקשט את הקירות', 'כדי להצמיד חפצים שלא ירחפו ויאבדו', 'כדי לייצר חמצן', 'כדי לחמם אוכל'], correctIndex: 1 },
       { id: 'microgravity-q2', text: 'מה קורה לחפצים בתנאי מיקרו-כבידה?', answers: ['הם תמיד נופלים מהר יותר', 'הם יכולים לרחף אם לא מקבעים אותם', 'הם נעלמים', 'הם נדבקים אוטומטית לרצפה'], correctIndex: 1 }
@@ -170,7 +191,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'patch-designer',
-    order: 12,
+    order: 14,
     title: 'עיצוב פאץ׳',
     type: 'patch-designer',
     baseScore: 200,
@@ -179,7 +200,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'space-jewelry',
-    order: 13,
+    order: 15,
     title: 'תכשיטי חלל',
     type: 'jewelry-designer',
     baseScore: 200,
@@ -188,7 +209,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'sleep-cell',
-    order: 14,
+    order: 16,
     title: 'תא שינה',
     type: 'video-quiz',
     baseScore: 100,
@@ -203,7 +224,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'dream-star',
-    order: 15,
+    order: 17,
     title: 'תהיו הכוכב של החלומות שלכם',
     type: 'dream-input',
     baseScore: 80,
@@ -212,7 +233,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'space-food',
-    order: 16,
+    order: 18,
     title: 'ארוחה חללית',
     type: 'video-quiz',
     baseScore: 100,
@@ -226,7 +247,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'space-breakfast',
-    order: 17,
+    order: 19,
     title: 'ארוחת בוקר שאפשר לעוף עליה',
     type: 'classification-game',
     baseScore: 150,
@@ -251,24 +272,27 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'earth-window',
-    order: 18,
+    order: 20,
     title: 'חלון כדור הארץ',
     type: 'three-info-quiz',
     baseScore: 160,
     allowSkip: true,
     estimatedSeconds: 100,
     video: v(videoSources.earthWindow),
+    model: {
+      storagePath: 'mission-models/iss.glb',
+      url: firebaseStorageUrl('basicapp-dd04f.firebasestorage.app', 'mission-models/iss.glb', '04c6d442-9437-4176-b1f1-2438d1096c00')
+    },
     wallContentSummary: ['מחלון הקופולה אפשר לראות את כדור הארץ, האטמוספרה הדקיקה ואזורים שונים במסלול התחנה.'],
     questions: [
-      { id: 'earth-window-q1', text: 'מה אפשר לראות מחלון הקופולה בתחנת החלל?', answers: ['את כדור הארץ והאטמוספרה שלו', 'את פנים הירח בלבד', 'את כל הכוכבים מקרוב', 'את מרכז כדור הארץ'], correctIndex: 0 },
-      { id: 'earth-window-q2', text: 'בערך כמה זמן לוקח לתחנת החלל להקיף את כדור הארץ?', answers: ['שעה וחצי', 'יום שלם', 'חודש', 'שנה'], correctIndex: 0 }
+      { id: 'earth-window-orbit-time', text: 'בערך כמה זמן לוקח לתחנת החלל להקיף את כדור הארץ?', answers: ['כ־90 דקות', 'יום שלם', 'חודש', 'שנה'], correctIndex: 0 }
     ]
   },
   {
     id: 'liquid-optics',
-    order: 19,
+    order: 21,
     title: 'ייצור אופטיקה בחלל באמצעות נוזלים',
-    type: 'three-info-quiz',
+    type: 'video-quiz',
     baseScore: 160,
     allowSkip: true,
     estimatedSeconds: 110,
@@ -282,7 +306,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'control-room',
-    order: 20,
+    order: 22,
     title: 'חדר בקרה',
     type: 'confirmation-quiz',
     baseScore: 80,
@@ -294,7 +318,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'rakia-numbers',
-    order: 21,
+    order: 23,
     title: 'משימת רקיע במספרים',
     type: 'quiz',
     baseScore: 150,
@@ -312,23 +336,8 @@ export const missions: MissionConfig[] = [
     ]
   },
   {
-    id: 'space-toilet',
-    order: 22,
-    title: 'שירותים בחלל',
-    type: 'video-quiz',
-    baseScore: 100,
-    allowSkip: true,
-    estimatedSeconds: 80,
-    video: v(videoSources.spaceToilet),
-    wallContentSummary: ['במיקרו-כבידה פסולת לא נופלת למטה. שירותים בתחנת החלל משתמשים בזרימת אוויר ושאיבה.'],
-    questions: [
-      { id: 'toilet-q1', text: 'למה שירותים בתחנת החלל לא עובדים כמו שירותים רגילים בכדור הארץ?', answers: ['כי אין נפילה רגילה של פסולת כלפי מטה במיקרו-כבידה', 'כי אין אסטרונאוטים בתחנה', 'כי המים רותחים מיד', 'כי השירותים נמצאים מחוץ לחללית'], correctIndex: 0 },
-      { id: 'toilet-q2', text: 'מה עוזר לכוון פסולת בשירותים בחלל?', answers: ['זרימת אוויר/שאיבה', 'מגנט ענק', 'אור שמש', 'פאנל סולארי'], correctIndex: 0 }
-    ]
-  },
-  {
     id: 'asteroid-blinking',
-    order: 23,
+    order: 24,
     title: 'מציאת אסטרואידים בגרובטק',
     type: 'three-game',
     baseScore: 180,
@@ -342,7 +351,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'return-home',
-    order: 24,
+    order: 25,
     title: 'חזרה הביתה',
     type: 'video-confirmation',
     baseScore: 60,
@@ -356,7 +365,7 @@ export const missions: MissionConfig[] = [
   },
   {
     id: 'summary-export',
-    order: 25,
+    order: 26,
     title: 'סיום והורדת PDF',
     type: 'summary',
     baseScore: 0,

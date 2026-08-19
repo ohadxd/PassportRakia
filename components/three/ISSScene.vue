@@ -1,114 +1,296 @@
 <template>
   <section class="three-wrap">
-    <div ref="host" class="three-host" />
-    <div class="marker-panel">
-      <button
-        v-for="marker in markers"
-        :key="marker.id"
-        type="button"
-        :class="{ visited: visited.includes(marker.id) }"
-        @click="visit(marker.id)"
-      >
-        {{ marker.label }}
-      </button>
+    <div ref="host" class="three-host">
+      <div v-if="isLoading || modelError" class="scene-state" :class="{ error: modelError }">
+        <span>{{ sceneNote }}</span>
+        <button v-if="modelError" type="button" @click="retryLoad">נסו שוב</button>
+      </div>
     </div>
-    <p class="scene-note">{{ activeInfo }}</p>
+    <p class="scene-note" :class="{ error: modelError }">{{ sceneNote }}</p>
   </section>
 </template>
 
 <script setup lang="ts">
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import localIssModelUrl from '~/assets/iss.glb?url'
 
+const props = defineProps<{ modelUrl?: string }>()
 const emit = defineEmits<{ ready: [] }>()
-const host = ref<HTMLElement | null>(null)
-const visited = ref<string[]>([])
-const markers = [
-  { id: 'solar', label: 'פאנלים סולאריים', info: 'הפאנלים מספקים חשמל לתחנה כשהיא מקיפה את כדור הארץ.' },
-  { id: 'lab', label: 'מעבדות מחקר', info: 'במעבדות מבצעים ניסויים בתנאי מיקרו-כבידה.' },
-  { id: 'living', label: 'אזור מחיה', info: 'כאן אוכלים, עובדים, מתאמנים וישנים.' },
-  { id: 'cupola', label: 'קופולה', info: 'חלון תצפית מרהיב אל כדור הארץ.' },
-  { id: 'dragon', label: 'חללית עגונה', info: 'חלליות Dragon מביאות צוותים וציוד אל התחנה.' }
-]
-const activeInfo = ref('בקרו לפחות בשני אזורים בתחנת החלל כדי לפתוח את השאלון.')
 
-function visit(id: string) {
-  const marker = markers.find((item) => item.id === id)
-  if (!marker) return
-  if (!visited.value.includes(id)) visited.value.push(id)
-  activeInfo.value = marker.info
-  if (visited.value.length >= 2) emit('ready')
-}
+const host = ref<HTMLElement | null>(null)
+const sceneNote = ref('טוען את מודל תחנת החלל...')
+const modelError = ref(false)
+const isLoading = ref(true)
+
+let frame = 0
+let renderer: THREE.WebGLRenderer | null = null
+let scene: THREE.Scene | null = null
+let camera: THREE.PerspectiveCamera | null = null
+let resizeObserver: ResizeObserver | null = null
+let station: THREE.Group | null = null
+let readyEmitted = false
+let disposed = false
 
 onMounted(() => {
-  if (!host.value) return
-  const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x07172f)
-  const camera = new THREE.PerspectiveCamera(45, host.value.clientWidth / host.value.clientHeight, 0.1, 100)
-  camera.position.set(0, 2.1, 7)
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-  renderer.setSize(host.value.clientWidth, host.value.clientHeight)
-  host.value.appendChild(renderer.domElement)
-  scene.add(new THREE.AmbientLight(0xffffff, 1.8))
-  const light = new THREE.DirectionalLight(0xffe7b0, 2.2)
-  light.position.set(4, 5, 6)
-  scene.add(light)
+  void initScene()
+})
 
-  const station = new THREE.Group()
-  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xd6dbe4, roughness: .45, metalness: .25 })
-  const gold = new THREE.MeshStandardMaterial({ color: 0xc29235, roughness: .5, metalness: .15 })
-  const blue = new THREE.MeshStandardMaterial({ color: 0x183d77, roughness: .35, metalness: .1 })
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, .55, .55), bodyMaterial)
-  station.add(body)
-  for (let i = -2; i <= 2; i++) {
-    const module = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .8, 24), bodyMaterial)
-    module.rotation.z = Math.PI / 2
-    module.position.x = i * .58
-    station.add(module)
+onBeforeUnmount(() => {
+  disposed = true
+  disposeScene()
+})
+
+async function retryLoad() {
+  disposeScene()
+  disposed = false
+  readyEmitted = false
+  await nextTick()
+  void initScene()
+}
+
+async function initScene() {
+  if (!host.value) return
+  isLoading.value = true
+  modelError.value = false
+  sceneNote.value = 'טוען את מודל תחנת החלל...'
+
+  try {
+    await waitForHostSize()
+    if (!host.value || disposed) return
+
+    setupScene()
+    animate()
+    await loadStationModel()
+    if (disposed) return
+
+    isLoading.value = false
+    modelError.value = false
+    sceneNote.value = 'מודל תחנת החלל נטען. ענו על השאלות לפי הטקסט שעל קיר התערוכה.'
+    emitReady()
+  } catch (error) {
+    console.error('[ISSScene] Failed to initialize ISS model', error)
+    isLoading.value = false
+    modelError.value = true
+    sceneNote.value = describeModelError(error)
   }
-  for (const x of [-2.05, 2.05]) {
-    const boom = new THREE.Mesh(new THREE.BoxGeometry(.12, .12, 2.5), gold)
-    boom.position.x = x
-    station.add(boom)
-    for (const z of [-1.05, 1.05]) {
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.65, .04, .78), blue)
-      panel.position.set(x, 0, z)
-      station.add(panel)
-    }
-  }
-  const cupola = new THREE.Mesh(new THREE.SphereGeometry(.28, 24, 16), new THREE.MeshStandardMaterial({ color: 0x74b8ff, transparent: true, opacity: .75 }))
-  cupola.position.set(.1, -.42, .42)
-  station.add(cupola)
+}
+
+function setupScene() {
+  if (!host.value) return
+  host.value.innerHTML = ''
+
+  const width = Math.max(320, host.value.clientWidth)
+  const height = Math.max(230, host.value.clientHeight)
+
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0x07172f)
+
+  camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100)
+  camera.position.set(0, 0.35, 5.2)
+  camera.lookAt(0, 0, 0)
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.setSize(width, height)
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+  host.value.appendChild(renderer.domElement)
+
+  scene.add(new THREE.AmbientLight(0xffffff, 1.55))
+
+  const key = new THREE.DirectionalLight(0xffe7b0, 2.7)
+  key.position.set(4, 5, 6)
+  scene.add(key)
+
+  const fill = new THREE.DirectionalLight(0xffffff, 1.1)
+  fill.position.set(-2, -1, 3)
+  scene.add(fill)
+
+  const rim = new THREE.DirectionalLight(0x9ed8ff, 1.35)
+  rim.position.set(-4, 2, -3)
+  scene.add(rim)
+
+  station = new THREE.Group()
   scene.add(station)
 
-  let frame = 0
-  const animate = () => {
-    frame = requestAnimationFrame(animate)
-    station.rotation.y += .006
-    station.rotation.x = Math.sin(Date.now() * .001) * .08
-    renderer.render(scene, camera)
-  }
-  animate()
+  resizeObserver = new ResizeObserver(resizeScene)
+  resizeObserver.observe(host.value)
+}
 
-  const resize = () => {
-    if (!host.value) return
-    camera.aspect = host.value.clientWidth / host.value.clientHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(host.value.clientWidth, host.value.clientHeight)
+async function loadStationModel() {
+  if (!station) throw new Error('ISS_SCENE_NOT_READY')
+
+  const urls = [props.modelUrl, localIssModelUrl].filter((url, index, list): url is string => Boolean(url) && list.indexOf(url) === index)
+  let gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>> | null = null
+  let lastError: unknown
+
+  for (const url of urls) {
+    try {
+      gltf = await new GLTFLoader().loadAsync(url)
+      break
+    } catch (error) {
+      lastError = error
+      console.warn('[ISSScene] Failed to load ISS model candidate', url, error)
+    }
   }
-  window.addEventListener('resize', resize)
-  onBeforeUnmount(() => {
-    cancelAnimationFrame(frame)
-    window.removeEventListener('resize', resize)
-    renderer.dispose()
+
+  if (!gltf) throw lastError || new Error('ISS_MODEL_URL_MISSING')
+  if (disposed || !station) return
+
+  const model = gltf.scene
+  model.traverse((node) => {
+    if (!(node instanceof THREE.Mesh)) return
+    node.frustumCulled = false
+    const materials = Array.isArray(node.material) ? node.material : [node.material]
+    materials.filter(Boolean).forEach((material) => {
+      material.side = THREE.DoubleSide
+      material.needsUpdate = true
+    })
   })
-})
+
+  const bounds = new THREE.Box3().setFromObject(model)
+  const size = new THREE.Vector3()
+  const center = new THREE.Vector3()
+  bounds.getSize(size)
+  bounds.getCenter(center)
+
+  const maxAxis = Math.max(size.x, size.y, size.z)
+  if (!Number.isFinite(maxAxis) || maxAxis <= 0) throw new Error('ISS_MODEL_INVALID_BOUNDS')
+
+  model.position.sub(center)
+  model.scale.setScalar(3.75 / maxAxis)
+  station.add(model)
+}
+
+function animate() {
+  if (!scene || !camera || !renderer || disposed) return
+  frame = requestAnimationFrame(animate)
+
+  if (station) {
+    station.rotation.y += 0.006
+    station.rotation.x = Math.sin(Date.now() * 0.001) * 0.055
+  }
+
+  renderer.render(scene, camera)
+}
+
+function resizeScene() {
+  if (!host.value || !camera || !renderer) return
+  const width = Math.max(320, host.value.clientWidth)
+  const height = Math.max(230, host.value.clientHeight)
+  camera.aspect = width / height
+  camera.updateProjectionMatrix()
+  renderer.setSize(width, height)
+}
+
+function disposeScene() {
+  if (frame) cancelAnimationFrame(frame)
+  resizeObserver?.disconnect()
+  if (host.value) host.value.innerHTML = ''
+
+  scene?.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) return
+    object.geometry?.dispose()
+    const materials = Array.isArray(object.material) ? object.material : [object.material]
+    materials.filter(Boolean).forEach(disposeMaterial)
+  })
+  renderer?.dispose()
+
+  frame = 0
+  renderer = null
+  scene = null
+  camera = null
+  resizeObserver = null
+  station = null
+}
+
+function disposeMaterial(material: THREE.Material) {
+  Object.values(material).forEach((value) => {
+    if (value instanceof THREE.Texture) value.dispose()
+  })
+  material.dispose()
+}
+
+function emitReady() {
+  if (readyEmitted) return
+  readyEmitted = true
+  emit('ready')
+}
+
+async function waitForHostSize() {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const rect = host.value?.getBoundingClientRect()
+    if (rect && rect.width >= 24 && rect.height >= 24) return
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  }
+  throw new Error('ISS_HOST_HAS_NO_SIZE')
+}
+
+function describeModelError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  if (message.includes('ISS_MODEL_URL_MISSING')) return 'לא הוגדר קובץ מודל לתחנת החלל.'
+  if (message.includes('ISS_HOST_HAS_NO_SIZE')) return 'אזור התלת־ממד לא קיבל גודל תקין. נסו לרענן את העמוד.'
+  return 'מודל תחנת החלל מ־Firebase לא נטען. בדקו חיבור ונסו שוב.'
+}
 </script>
 
 <style scoped>
-.three-wrap { display: grid; gap: 10px; }
-.three-host { height: 230px; border-radius: 8px; overflow: hidden; background: #07172f; }
-.marker-panel { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 3px; }
-.marker-panel button { flex: 0 0 auto; min-height: 38px; border-radius: 8px; padding: 0 12px; color: #12243b; background: rgba(255,250,232,.78); border: 1px solid rgba(18,36,59,.18); font-weight: 700; }
-.marker-panel button.visited { background: rgba(11,125,79,.16); border-color: rgba(11,125,79,.48); }
-.scene-note { margin: 0; color: #4a5870; line-height: 1.45; }
+.three-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.three-host {
+  position: relative;
+  height: clamp(260px, 52vw, 390px);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #07172f;
+}
+
+.three-host :deep(canvas) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.scene-state {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 22px;
+  color: rgba(247, 232, 191, .95);
+  background: rgba(2, 8, 23, .64);
+  text-align: center;
+  font-weight: 900;
+}
+
+.scene-state.error {
+  color: #ffe2d6;
+  background: rgba(35, 8, 10, .78);
+}
+
+.scene-state button {
+  min-height: 38px;
+  border: 1px solid rgba(255,255,255,.36);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: #10233d;
+  background: #f5d674;
+  font-weight: 900;
+}
+
+.scene-note {
+  margin: 0;
+  color: #4a5870;
+  line-height: 1.45;
+}
+
+.scene-note.error {
+  color: #852d2d;
+}
 </style>

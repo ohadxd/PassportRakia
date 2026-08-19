@@ -1,6 +1,7 @@
 export type MissionType =
   | 'transition'
   | 'intro-video'
+  | 'wall-video-confirmation'
   | 'quiz'
   | 'video-quiz'
   | 'video-confirmation'
@@ -49,9 +50,14 @@ export interface MissionConfig {
   arSlug?: string
   video?: {
     storagePath: string
+    url?: string
     sourceTitle?: string
     sourceReferenceUrl?: string
     loadMode: 'on-demand' | 'preload-next-only'
+  }
+  model?: {
+    storagePath: string
+    url: string
   }
   questions?: QuizQuestion[]
   sortItems?: SortItem[]
@@ -102,6 +108,7 @@ export interface CreationRecord {
   sessionId: string
   type: 'patch' | 'jewelry'
   imageUrl: string
+  imageDataUrl?: string
   storagePath: string
   data: unknown
   createdAt: string

@@ -5,6 +5,4 @@
   <path d="M130 0h46v92h64v148c-36 0-62 22-62 61H82c0-39-26-61-62-61V92h64V0z" fill="#071626" stroke="#c9a45a" stroke-width="8" filter="url(#s)"/>
   <path d="M45 122h170v94H45z" fill="none" stroke="#c9a45a" stroke-width="3"/>
   <text x="130" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#c9a45a" font-weight="800">משימה</text>
-  <text x="130" y="180" text-anchor="middle" font-family="Georgia, serif" font-size="82" fill="#c9a45a" font-weight="900">01</text>
-  <text x="130" y="226" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" fill="#c9a45a">מספר משימה</text>
 </svg>

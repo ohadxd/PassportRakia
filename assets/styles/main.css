@@ -12,7 +12,19 @@
   --shadow: 0 24px 70px rgba(2, 8, 20, .42);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable=""],
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
 
 html, body, #__nuxt {
   min-height: 100%;

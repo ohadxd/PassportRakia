@@ -51,6 +51,31 @@ function withoutUndefined<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, field]) => field !== undefined)) as T
 }
 
+function dataUrlByteSize(dataUrl: string) {
+  const base64 = dataUrl.split(',')[1] || ''
+  return Math.floor(base64.length * 0.75)
+}
+
+function validateUploadDataUrl(path: string, dataUrl: string) {
+  const match = dataUrl.match(/^data:([^;,]+);base64,/)
+  if (!match) throw new Error('Unsupported upload format.')
+
+  const contentType = match[1]
+  const size = dataUrlByteSize(dataUrl)
+  const isCreation = path.startsWith('creations/')
+  const isPhoto = path.startsWith('user-photos/')
+
+  if (isPhoto && !['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+    throw new Error('Passport photo must be an image.')
+  }
+  if (isCreation && contentType !== 'image/png') {
+    throw new Error('Creation preview must be a PNG image.')
+  }
+
+  const maxSize = isPhoto ? 2 * 1024 * 1024 : 4 * 1024 * 1024
+  if (size > maxSize) throw new Error('Upload is too large.')
+}
+
 export function useFirebase() {
   const config = useRuntimeConfig().public
 
@@ -79,6 +104,18 @@ export function useFirebase() {
               appId: config.firebaseAppId,
               measurementId: config.firebaseMeasurementId
             })
+        const appCheckKey = String(config.firebaseAppCheckRecaptchaKey || '')
+        if (appCheckKey) {
+          const { initializeAppCheck, ReCaptchaV3Provider } = await import('firebase/app-check')
+          try {
+            initializeAppCheck(app, {
+              provider: new ReCaptchaV3Provider(appCheckKey),
+              isTokenAutoRefreshEnabled: true
+            })
+          } catch (error) {
+            console.warn('[Firebase] App Check was not initialized.', error)
+          }
+        }
         const auth = getAuth(app)
         if (!auth.currentUser) {
           await signInAnonymously(auth)
@@ -185,6 +222,7 @@ export function useFirebase() {
   }
 
   async function uploadDataUrl(path: string, dataUrl: string) {
+    validateUploadDataUrl(path, dataUrl)
     const services = await requireServices()
     const { ref, uploadString, getDownloadURL } = await import('firebase/storage')
     const storageRef = ref(services.storage, path)
@@ -212,26 +250,53 @@ export function useFirebase() {
       createdAt: nowIso()
     }
     const creations = readLocal<Record<string, CreationRecord>>(`creations/${record.sessionId}`, {})
-    creations[record.type] = creation
+    const localCreation = { ...creation, imageDataUrl: record.imageDataUrl }
+    creations[record.type] = localCreation
     const services = await requireServices()
     const { doc, setDoc } = await import('firebase/firestore')
     await setDoc(doc(services.db, 'creations', creation.id), withoutUndefined(creation), { merge: true })
     writeLocal(`creations/${record.sessionId}`, creations)
-    return creation
+    return localCreation
   }
 
   function getLocalCreations(sessionId: string) {
     return readLocal<Record<string, CreationRecord>>(`creations/${sessionId}`, {})
   }
 
+  async function getCreations(sessionId: string) {
+    const local = getLocalCreations(sessionId)
+    const services = await getServices()
+    if (!services) return local
+
+    const { doc, getDoc } = await import('firebase/firestore')
+    const entries = await Promise.all(
+      (['patch', 'jewelry'] as const).map(async (type) => {
+        const snap = await getDoc(doc(services.db, 'creations', `${sessionId}-${type}`)).catch(() => null)
+        return snap?.exists() ? [type, snap.data() as CreationRecord] as const : null
+      })
+    )
+    const remote = Object.fromEntries(entries.filter((entry): entry is readonly ['patch' | 'jewelry', CreationRecord] => Boolean(entry)))
+    const creations = { ...local }
+    ;(['patch', 'jewelry'] as const).forEach((type) => {
+      if (!remote[type]) return
+      creations[type] = {
+        ...local[type],
+        ...remote[type],
+        imageDataUrl: local[type]?.imageDataUrl
+      }
+    })
+    writeLocal(`creations/${sessionId}`, creations)
+    return creations
+  }
+
   async function saveDream(entry: Omit<DreamEntry, 'id' | 'createdAt'>) {
-    const dream: DreamEntry = { ...entry, id: generateId('dream'), createdAt: nowIso() }
+    const dream: DreamEntry = { ...entry, id: entry.sessionId, createdAt: nowIso() }
     const dreams = readLocal<DreamEntry[]>('dreams', [])
-    dreams.unshift(dream)
+    const nextDreams = [dream, ...dreams.filter((item) => item.sessionId !== entry.sessionId)]
     const services = await requireServices()
     const { doc, setDoc } = await import('firebase/firestore')
     await setDoc(doc(services.db, 'dreams', dream.id), withoutUndefined(dream))
-    writeLocal('dreams', dreams)
+    writeLocal('dreams', nextDreams)
     return dream
   }
 
@@ -246,12 +311,16 @@ export function useFirebase() {
     return readLocal<DreamEntry[]>('dreams', []).filter((dream) => dream.approved)
   }
 
-  async function subscribeDreams(callback: (dreams: DreamEntry[]) => void) {
+  async function subscribeDreams(callback: (dreams: DreamEntry[]) => void, onError?: (error: unknown) => void) {
     const services = await getServices()
     if (services) {
       const { collection, limit, onSnapshot, orderBy, query, where } = await import('firebase/firestore')
       const q = query(collection(services.db, 'dreams'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(80))
-      return onSnapshot(q, (snapshot) => callback(snapshot.docs.map((docSnap) => docSnap.data() as DreamEntry)))
+      return onSnapshot(
+        q,
+        (snapshot) => callback(snapshot.docs.map((docSnap) => docSnap.data() as DreamEntry)),
+        (error) => onError?.(error)
+      )
     }
     callback(await getDreams())
     return () => undefined
@@ -271,6 +340,7 @@ export function useFirebase() {
     getStorageUrl,
     saveCreation,
     getLocalCreations,
+    getCreations,
     saveDream,
     getDreams,
     subscribeDreams

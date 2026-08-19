@@ -17,9 +17,9 @@ defineProps<{ dream: DreamEntry }>()
 
 <style scoped>
 .dream-card {
-  min-height: 220px;
+  min-height: clamp(190px, 19vh, 250px);
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: clamp(92px, 8vw, 128px) 1fr;
   gap: 18px;
   align-items: center;
   border: 1px solid rgba(214,184,102,.35);
@@ -35,8 +35,8 @@ defineProps<{ dream: DreamEntry }>()
 
 img,
 .avatar {
-  width: 120px;
-  height: 150px;
+  width: clamp(92px, 8vw, 128px);
+  height: clamp(116px, 10vw, 160px);
   border-radius: 8px;
   object-fit: cover;
   border: 2px solid rgba(214,184,102,.55);
@@ -59,6 +59,7 @@ p {
   margin: 0 0 12px;
   font-size: clamp(1.1rem, 2vw, 1.8rem);
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 span {

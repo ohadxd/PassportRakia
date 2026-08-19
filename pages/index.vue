@@ -108,12 +108,50 @@ function uploadFile(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
   submitError.value = ''
-  const reader = new FileReader()
-  reader.onload = () => {
-    photoDataUrl.value = String(reader.result)
-    stopCamera()
+  if (!file.type.startsWith('image/')) {
+    submitError.value = 'אפשר להעלות קובץ תמונה בלבד.'
+    return
   }
-  reader.readAsDataURL(file)
+  resizeImageFile(file)
+    .then((dataUrl) => {
+      photoDataUrl.value = dataUrl
+      stopCamera()
+    })
+    .catch(() => {
+      submitError.value = 'לא הצלחנו להכין את התמונה. נסו תמונה אחרת או המשיכו בלי תמונה.'
+    })
+}
+
+function resizeImageFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const image = new Image()
+    const url = URL.createObjectURL(file)
+
+    image.onload = () => {
+      URL.revokeObjectURL(url)
+      const canvas = document.createElement('canvas')
+      canvas.width = 720
+      canvas.height = 900
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Canvas is not available.'))
+        return
+      }
+
+      const ratio = Math.max(canvas.width / image.width, canvas.height / image.height)
+      const width = image.width * ratio
+      const height = image.height * ratio
+      ctx.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height)
+      resolve(canvas.toDataURL('image/jpeg', .86))
+    }
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Image failed to load.'))
+    }
+
+    image.src = url
+  })
 }
 
 function continueWithoutPhoto() {

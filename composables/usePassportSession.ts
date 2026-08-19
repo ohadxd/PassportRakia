@@ -33,7 +33,7 @@ export function usePassportSession(sessionId: string) {
 
   function buildProgress(mission: MissionConfig, patch: Partial<MissionProgress>): MissionProgress {
     const current = progress.value[mission.id]
-    return {
+    const defaults: MissionProgress = {
       missionId: mission.id,
       order: mission.order,
       status: 'not-started',
@@ -41,7 +41,10 @@ export function usePassportSession(sessionId: string) {
       baseScore: mission.baseScore,
       speedBonus: 0,
       attempts: 0,
-      stamped: false,
+      stamped: false
+    }
+    return {
+      ...defaults,
       ...current,
       ...patch
     }
