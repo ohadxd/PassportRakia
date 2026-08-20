@@ -509,29 +509,25 @@ async function saveDream() {
   display: grid;
   align-content: start;
   gap: 13px;
-  padding-bottom: clamp(160px, 31svh, 270px);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 .mission-action {
-  position: fixed;
+  position: sticky;
   z-index: 30;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  width: min(calc(100vw - 40px), 700px);
-  transform: translateX(-50%);
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .mission :deep(.mission-action) {
-  position: fixed;
+  position: sticky;
   z-index: 30;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  width: min(calc(100vw - 40px), 700px);
-  transform: translateX(-50%);
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .mission-action:active,
-.mission :deep(.mission-action:active) { transform: translateX(-50%) translateY(1px); }
+.mission :deep(.mission-action:active) { transform: translateY(1px); }
 
 .mission :deep(.mission-header) {
   position: sticky;

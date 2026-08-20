@@ -5,3 +5,5 @@ dist
 .firebase
 .env
 *.log
+artifacts/mobile-qa
+playwright-report
