@@ -71,7 +71,7 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,woff2}'],
+      globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,woff2,mp3}'],
       globIgnores: ['**/mission-videos/**', '**/mission-models/**', '**/*.mp4', '**/*.webm', '**/*.mov', '**/babylon-jewelry*.js', '**/HavokPhysics*.wasm'],
       maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       navigateFallback: '/',

@@ -39,6 +39,7 @@ const route = useRoute()
 const sessionId = String(route.params.sessionId)
 const { session, progress, loading, error, orderedMissions, refresh, setPage, startMission, completeMission, skipMission, recordChallengeOutcome } = usePassportSession(sessionId)
 const { playStampSound } = useStamp()
+const STAMP_DISPLAY_MS = 2000
 
 // index אופטימי מקומי: מתעדכן מיד עם השלמת ההיפוך, וכתיבת ה-Firebase רצה ברקע —
 // כך שהוויזואל מונע מהאנימציה ולא מהרשת.
@@ -72,7 +73,10 @@ async function complete(payload: { attempts: number; answers?: unknown }) {
   try {
     await startMission(mission.value)
     const result = await completeMission(mission.value, payload.attempts, payload.answers as never)
-    if (result.stamped) playStampSound()
+    if (result.stamped) {
+      playStampSound()
+      await new Promise<void>((resolve) => window.setTimeout(resolve, STAMP_DISPLAY_MS))
+    }
     if (currentIndex < orderedMissions.value.length - 1) advanceTo(currentIndex + 1)
   } catch (err) {
     console.error(err)

@@ -1,10 +1,23 @@
 <template>
   <div v-if="outcome" class="streak-scene" :class="`is-${outcome}`" aria-hidden="true">
-    <div v-if="outcome === 'correct'" class="orbital-stage">
+    <div v-if="outcome === 'correct' && streak >= 3" class="orbital-stage">
       <span class="trajectory trajectory-primary" />
-      <span v-if="streak >= 2" class="trajectory trajectory-secondary" />
-      <span v-if="streak >= 3" class="orbital-craft craft-primary"><i /></span>
-      <span v-if="streak >= 3" class="orbital-craft craft-secondary"><i /></span>
+      <span class="trajectory trajectory-secondary" />
+      <span class="orbital-craft craft-primary"><i /></span>
+      <span class="orbital-craft craft-secondary"><i /></span>
+    </div>
+
+    <div v-if="outcome === 'correct' && streak < 3" class="applause-stage">
+      <span
+        v-for="piece in 24"
+        :key="piece"
+        class="confetti-piece"
+        :style="confettiStyle(piece)"
+      />
+      <div class="clapping-hands">
+        <span class="hand hand-left">👏</span>
+        <span class="hand hand-right">👏</span>
+      </div>
     </div>
 
     <div v-if="outcome === 'correct'" class="feedback correct-feedback" role="presentation">
@@ -33,6 +46,17 @@ withDefaults(defineProps<{
   streak: number
   outcome?: 'correct' | 'wrong' | ''
 }>(), { outcome: '' })
+
+function confettiStyle(piece: number) {
+  const colors = ['#00AEEF', '#D6047F', '#f7d154', '#ffffff', '#6ee7b7']
+  return {
+    left: `${(piece * 37) % 100}%`,
+    backgroundColor: colors[piece % colors.length],
+    '--confetti-delay': `${(piece % 6) * 0.07}s`,
+    '--confetti-drift': `${((piece % 7) - 3) * 18}px`,
+    '--confetti-turn': `${180 + (piece % 5) * 90}deg`
+  }
+}
 </script>
 
 <style scoped>
@@ -49,7 +73,7 @@ withDefaults(defineProps<{
   position: absolute;
   inset: 0;
   opacity: 0;
-  animation: orbital-stage-in 1.15s cubic-bezier(.22, .68, .28, 1) both;
+  animation: orbital-stage-in 4s ease-in-out both;
 }
 
 .trajectory {
@@ -62,7 +86,7 @@ withDefaults(defineProps<{
   border-radius: 50%;
   opacity: 0;
   transform: translate(-50%, -50%) rotate(-15deg) scale(.82);
-  animation: trajectory-resolve 1.05s cubic-bezier(.2, .72, .25, 1) both;
+  animation: trajectory-resolve 3.8s ease-in-out both;
 }
 
 .trajectory::after {
@@ -89,22 +113,25 @@ withDefaults(defineProps<{
   position: absolute;
   z-index: 1;
   display: block;
-  width: 58px;
-  height: 16px;
+  width: 112px;
+  height: 34px;
   opacity: 0;
-  animation: craft-pass-primary 1.05s cubic-bezier(.2, .64, .32, 1) both;
+  filter: drop-shadow(0 8px 14px rgba(var(--bg-deep-rgb), .46));
+  animation: craft-pass-primary 4s cubic-bezier(.22, .58, .3, 1) both;
 }
 
 .orbital-craft::before,
 .orbital-craft::after {
   position: absolute;
-  top: 3px;
-  width: 19px;
-  height: 10px;
-  border: 1px solid rgba(var(--accent-rgb), .76);
+  top: 7px;
+  width: 40px;
+  height: 20px;
+  border: 1px solid rgba(var(--text-rgb), .68);
+  border-radius: 2px;
   background:
-    linear-gradient(90deg, transparent 47%, rgba(var(--accent-rgb), .55) 48% 52%, transparent 53%),
-    linear-gradient(rgba(var(--accent-rgb), .46) 48%, transparent 49%);
+    repeating-linear-gradient(90deg, transparent 0 8px, rgba(var(--text-rgb), .32) 8px 9px),
+    repeating-linear-gradient(0deg, transparent 0 6px, rgba(var(--text-rgb), .28) 6px 7px),
+    linear-gradient(135deg, #164f84, #082948);
   content: '';
 }
 
@@ -113,38 +140,86 @@ withDefaults(defineProps<{
 
 .orbital-craft i {
   position: absolute;
-  top: 1px;
-  left: 22px;
-  width: 14px;
-  height: 14px;
+  top: 7px;
+  left: 44px;
+  width: 24px;
+  height: 20px;
   border: 1px solid rgba(var(--text-rgb), .78);
-  border-radius: 3px;
-  background: var(--bg-2);
+  border-radius: 4px;
+  background: linear-gradient(135deg, #dce5eb, #667987 55%, #263844);
   box-shadow: 0 0 14px rgba(var(--accent-rgb), .44);
+}
+
+.orbital-craft i::before {
+  position: absolute;
+  top: -14px;
+  left: 4px;
+  width: 14px;
+  height: 9px;
+  border: 2px solid rgba(var(--text-rgb), .82);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+  content: '';
 }
 
 .orbital-craft i::after {
   position: absolute;
-  top: -6px;
-  left: 5px;
+  top: -7px;
+  left: 11px;
   width: 2px;
-  height: 6px;
-  background: rgba(var(--text-rgb), .72);
+  height: 8px;
+  background: rgba(var(--text-rgb), .78);
   content: '';
 }
 
 .craft-primary {
-  top: 28%;
-  left: -70px;
+  top: 25%;
+  left: -130px;
 }
 
 .craft-secondary {
-  right: -70px;
-  bottom: 25%;
+  right: -130px;
+  bottom: 23%;
   transform: rotate(180deg) scale(.82);
   animation-name: craft-pass-secondary;
-  animation-delay: .1s;
+  animation-delay: .18s;
 }
+
+.applause-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 16px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fall 1.85s var(--confetti-delay) cubic-bezier(.18, .68, .36, 1) both;
+}
+
+.clapping-hands {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  display: flex;
+  gap: 8px;
+  font-size: clamp(3.5rem, 18vw, 6.5rem);
+  filter: drop-shadow(0 12px 24px rgba(var(--bg-deep-rgb), .48));
+  transform: translateX(-50%);
+  animation: hands-enter 2s ease both;
+}
+
+.hand {
+  display: block;
+  transform-origin: 50% 85%;
+}
+
+.hand-left { animation: clap-left .38s ease-in-out 4 alternate; }
+.hand-right { animation: clap-right .38s ease-in-out 4 alternate; }
 
 .feedback {
   position: absolute;
@@ -177,7 +252,7 @@ withDefaults(defineProps<{
 }
 
 .correct-feedback {
-  animation: feedback-confirm 1.15s cubic-bezier(.22, .68, .28, 1) both;
+  animation: feedback-confirm 2s cubic-bezier(.22, .68, .28, 1) both;
 }
 
 .wrong-feedback {
@@ -262,26 +337,50 @@ withDefaults(defineProps<{
 
 @keyframes orbital-stage-in {
   0% { opacity: 0; }
-  18%, 78% { opacity: .88; }
+  8%, 90% { opacity: .92; }
   100% { opacity: 0; }
 }
 
 @keyframes trajectory-resolve {
   0% { opacity: 0; transform: translate(-50%, -50%) rotate(-15deg) scale(.82); }
-  34% { opacity: .72; }
+  18%, 82% { opacity: .72; }
   100% { opacity: 0; transform: translate(-50%, -50%) rotate(-15deg) scale(1.04); }
 }
 
 @keyframes craft-pass-primary {
-  0% { opacity: 0; transform: translate3d(0, 68px, 0) rotate(-12deg) scale(.72); }
-  20%, 72% { opacity: .82; }
-  100% { opacity: 0; transform: translate3d(calc(100vw + 140px), -54px, 0) rotate(-12deg) scale(.94); }
+  0% { opacity: 0; transform: translate3d(0, 74px, 0) rotate(-8deg) scale(.78); }
+  10%, 88% { opacity: .96; }
+  48% { transform: translate3d(calc(50vw + 70px), -10px, 0) rotate(-3deg) scale(.9); }
+  100% { opacity: 0; transform: translate3d(calc(100vw + 260px), -72px, 0) rotate(3deg) scale(1); }
 }
 
 @keyframes craft-pass-secondary {
-  0% { opacity: 0; transform: translate3d(0, 34px, 0) rotate(180deg) scale(.68); }
-  24%, 70% { opacity: .68; }
-  100% { opacity: 0; transform: translate3d(calc(-100vw - 140px), -70px, 0) rotate(180deg) scale(.88); }
+  0% { opacity: 0; transform: translate3d(0, 38px, 0) rotate(184deg) scale(.72); }
+  12%, 86% { opacity: .82; }
+  52% { transform: translate3d(calc(-50vw - 70px), -18px, 0) rotate(180deg) scale(.84); }
+  100% { opacity: 0; transform: translate3d(calc(-100vw - 260px), -82px, 0) rotate(176deg) scale(.94); }
+}
+
+@keyframes confetti-fall {
+  0% { opacity: 0; transform: translate3d(0, -12px, 0) rotate(0); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--confetti-drift), 105vh, 0) rotate(var(--confetti-turn)); }
+}
+
+@keyframes hands-enter {
+  0% { opacity: 0; transform: translate(-50%, 36px) scale(.8); }
+  18%, 78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -12px) scale(.96); }
+}
+
+@keyframes clap-left {
+  from { transform: rotate(-18deg) translateX(-5px); }
+  to { transform: rotate(8deg) translateX(7px); }
+}
+
+@keyframes clap-right {
+  from { transform: scaleX(-1) rotate(-18deg) translateX(-5px); }
+  to { transform: scaleX(-1) rotate(8deg) translateX(7px); }
 }
 
 @keyframes feedback-confirm {

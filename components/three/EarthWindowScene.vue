@@ -162,8 +162,11 @@ async function refreshIssPosition(showLoading = true) {
   sceneError.value = ''
 
   try {
-    const modelPromise = modelLoaded.value ? Promise.resolve() : loadIssModel()
-    const nextSnapshot = await fetchIssSnapshot()
+    const modelPromise = (modelLoaded.value ? Promise.resolve() : loadIssModel())
+      .catch((error) => {
+        console.error('[EarthWindowScene] Failed to load the ISS model', error)
+      })
+    const nextSnapshot = await withTimeout(fetchIssSnapshot(), 7000)
     if (disposed) return
     snapshot.value = nextSnapshot
     regionLabel.value = 'בודק מעל איזו מדינה נמצאת התחנה...'
@@ -173,7 +176,9 @@ async function refreshIssPosition(showLoading = true) {
     if (disposed) return
 
     regionLabel.value = region.label
-    await modelPromise
+    await withTimeout(modelPromise, 10000).catch((error) => {
+      console.error('[EarthWindowScene] ISS model loading timed out', error)
+    })
     if (disposed) return
     emit('locationQuestion', buildLocationQuestion(region, nextSnapshot))
     emitReady()
@@ -310,7 +315,7 @@ function describeSceneError(error: unknown) {
   if (message.includes('ISS_MODEL')) {
     return 'מודל תחנת החלל מ־Firebase לא נטען. בדקו שהטוקן והקובץ iss.glb זמינים.'
   }
-  if (/api|fetch|network|coordinate/i.test(message)) {
+  if (/api|fetch|network|coordinate|timed out|timeout/i.test(message)) {
     return 'מיקום תחנת החלל לא נטען מה־API. בדקו חיבור ונסו שוב.'
   }
   return 'טעינת חלון כדור הארץ נכשלה. פרטי השגיאה נרשמו בקונסול.'

@@ -72,10 +72,10 @@ export const missions: MissionConfig[] = [
     type: 'ar-confirmation',
     baseScore: 50,
     allowSkip: true,
-    actionText: 'סיימתי',
+    actionText: 'המשך',
     arSlug: 'dragon',
     video: v(videoSources.dragonTour),
-    wallContentSummary: ['פתחו את אפליקציית רקיע ובצעו את משימת ה-AR של חללית דרגון.', 'לאחר שסיימתם, חזרו לכאן ולחצו סיימתי.']
+    wallContentSummary: ['פתחו את אפליקציית רקיע ובצעו את משימת ה-AR של חללית דרגון.', 'לאחר שסיימתם, חזרו לכאן ולחצו המשך.']
   },
   {
     id: 'iss-ar',
@@ -84,9 +84,9 @@ export const missions: MissionConfig[] = [
     type: 'ar-confirmation',
     baseScore: 50,
     allowSkip: true,
-    actionText: 'סיימתי',
+    actionText: 'המשך',
     arSlug: 'iss',
-    wallContentSummary: ['פתחו את אפליקציית רקיע וצפו בתחנת החלל הבינלאומית ב-AR.', 'לאחר שסיימתם, חזרו לכאן ולחצו סיימתי.']
+    wallContentSummary: ['פתחו את אפליקציית רקיע וצפו בתחנת החלל הבינלאומית ב-AR.', 'לאחר שסיימתם, חזרו לכאן ולחצו המשך.']
   },
   {
     id: 'launch-to-landing',
@@ -128,7 +128,7 @@ export const missions: MissionConfig[] = [
     type: 'ar-confirmation',
     baseScore: 70,
     allowSkip: true,
-    actionText: 'סיימתי',
+    actionText: 'המשך',
     arSlug: 'countdown',
     wallContentSummary: ['כדי לברוח מכבידת כדור הארץ צריך להגיע לכ-11.2 ק״מ בשנייה.']
   },

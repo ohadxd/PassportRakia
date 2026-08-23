@@ -1,18 +1,20 @@
 <template>
   <div class="mission">
-    <MissionHeader :order="mission.order" :title="mission.title" :subtitle="mission.subtitle" />
+    <template v-if="!challengeActive">
+      <MissionHeader :order="mission.order" :title="mission.title" :subtitle="mission.subtitle" />
 
-    <p v-if="isChallengeMission" class="streak-status" aria-live="polite">
-      <span aria-hidden="true">✦</span>
-      רצף נוכחי: {{ currentCorrectStreak }}
-    </p>
+      <p v-if="isChallengeMission" class="streak-status" aria-live="polite">
+        <span aria-hidden="true">✦</span>
+        רצף נוכחי: {{ currentCorrectStreak }}
+      </p>
 
-    <div v-if="mission.wallContentSummary?.length" class="mission-copy summary-copy">
-      <p v-for="line in mission.wallContentSummary" :key="line">{{ line }}</p>
-    </div>
+      <div v-if="mission.wallContentSummary?.length" class="mission-copy summary-copy">
+        <p v-for="line in mission.wallContentSummary" :key="line">{{ line }}</p>
+      </div>
 
-    <p v-if="progress?.status === 'skipped'" class="skip-note">אין חותמת לתחנה שדולגה. אפשר להשלים אותה עכשיו ולקבל חותמת.</p>
-    <p v-if="savedMessage" class="success-note">{{ savedMessage }}</p>
+      <p v-if="progress?.status === 'skipped'" class="skip-note">אין חותמת לתחנה שדולגה. אפשר להשלים אותה עכשיו ולקבל חותמת.</p>
+      <p v-if="savedMessage" class="success-note">{{ savedMessage }}</p>
+    </template>
 
     <section v-if="mission.type === 'transition'" class="transition-panel">
       <h2>מוכן למשימה?</h2>
@@ -29,15 +31,17 @@
     </section>
 
     <section v-else-if="isVideoMission" class="video-panel">
-      <video v-if="videoUrl" :key="videoKey" controls playsinline preload="metadata" @play="start" @error="videoError = true">
-        <source :key="videoKey" :src="videoUrl" type="video/mp4" />
-      </video>
-      <div v-else class="video-placeholder">
-        <strong>וידאו מאחסון Firebase</strong>
-        <span>{{ mission.video?.storagePath }}</span>
-        <p>הסרטון נטען לפי נתיב Storage בלבד ואינו כלול בתוך ה-PWA.</p>
-      </div>
-      <p v-if="videoError" class="error-note">טעינת הסרטון נכשלה. ניתן לנסות שוב או להמשיך בתחנה.</p>
+      <template v-if="!quizStarted">
+        <video v-if="videoUrl" :key="videoKey" controls playsinline preload="metadata" @play="start" @error="videoError = true">
+          <source :key="videoKey" :src="videoUrl" type="video/mp4" />
+        </video>
+        <div v-else class="video-placeholder">
+          <strong>וידאו מאחסון Firebase</strong>
+          <span>{{ mission.video?.storagePath }}</span>
+          <p>הסרטון נטען לפי נתיב Storage בלבד ואינו כלול בתוך ה-PWA.</p>
+        </div>
+        <p v-if="videoError" class="error-note">טעינת הסרטון נכשלה. ניתן לנסות שוב או להמשיך בתחנה.</p>
+      </template>
       <QuizBlock
         v-if="mission.type === 'video-quiz'"
         :questions="quizQuestions"
@@ -56,12 +60,12 @@
     <section v-else-if="mission.type === 'ar-confirmation'" class="ar-panel">
       <a class="ar-link" :href="arUrl" target="_blank" rel="noreferrer">{{ arLinkLabel }}</a>
       <button class="primary-button mission-action" type="button" @click="completeNow(1)">
-        {{ mission.actionText || 'סיימתי' }}
+        {{ mission.actionText || 'המשך' }}
       </button>
     </section>
 
     <section v-else-if="mission.type === 'quiz' || mission.type === 'confirmation-quiz'" class="quiz-panel">
-      <div v-if="mission.type === 'confirmation-quiz'" class="checks">
+      <div v-if="mission.type === 'confirmation-quiz' && !quizStarted" class="checks">
         <label v-for="check in controlChecks" :key="check">
           <input v-model="checkedControls" type="checkbox" :value="check" />
           {{ check }}
@@ -72,7 +76,6 @@
         :started="quizStarted"
         :current-index="quizIndex"
         :message="quizMessage"
-        :disabled="mission.type === 'confirmation-quiz' && checkedControls.length < controlChecks.length"
         :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
@@ -121,20 +124,20 @@
     </section>
 
     <section v-else-if="mission.type === 'three-info-quiz'" class="three-panel">
-      <ISSScene v-if="mission.id === 'iss-station'" :model-url="mission.model?.url" @ready="sceneReady = true" />
+      <ISSScene v-if="!quizStarted && mission.id === 'iss-station'" :model-url="mission.model?.url" @ready="sceneReady = true" />
       <EarthWindowScene
-        v-else-if="mission.id === 'earth-window'"
+        v-else-if="!quizStarted && mission.id === 'earth-window'"
         :model-url="mission.model?.url"
         @ready="sceneReady = true"
         @location-question="setDynamicQuestion"
       />
-      <LiquidOpticsScene v-else @ready="sceneReady = true" />
+      <LiquidOpticsScene v-else-if="!quizStarted" @ready="sceneReady = true" />
       <QuizBlock
         :questions="quizQuestions"
         :started="quizStarted"
         :current-index="quizIndex"
         :message="quizMessage"
-        :disabled="!sceneReady"
+        :disabled="mission.id !== 'earth-window' && !sceneReady"
         :locked="challengeBusy"
         @start="startQuiz"
         @answer="answerQuiz"
@@ -196,7 +199,7 @@
     </section>
 
     <Stamp v-if="progress?.status === 'completed' && mission.baseScore > 0" :seed="mission.order" :animate="animateStamp" />
-    <StreakCelebration :streak="currentCorrectStreak" :outcome="feedbackOutcome" />
+    <StreakCelebration :streak="celebrationStreak" :outcome="feedbackOutcome" />
   </div>
 </template>
 
@@ -248,6 +251,7 @@ const dreamError = ref('')
 const savedMessage = ref('')
 const animateStamp = ref(false)
 const feedbackOutcome = ref<'correct' | 'wrong' | ''>('')
+const celebrationStreak = ref(0)
 const challengeBusy = ref(false)
 const checkedControls = ref<string[]>([])
 const controlChecks = ['תקשורת תקינה', 'מיקום ידוע', 'צוות כשיר למשימה']
@@ -255,6 +259,7 @@ const controlChecks = ['תקשורת תקינה', 'מיקום ידוע', 'צוו
 const stampMissions = computed(() => missions.filter((mission) => mission.baseScore > 0))
 const isVideoMission = computed(() => ['intro-video', 'video-quiz', 'video-confirmation'].includes(props.mission.type))
 const isChallengeMission = computed(() => ['quiz', 'confirmation-quiz', 'video-quiz', 'sort-game', 'classification-game', 'three-info-quiz', 'three-game'].includes(props.mission.type))
+const challengeActive = computed(() => quizStarted.value || sortStarted.value || classificationStarted.value)
 const webArUrl = computed(() => `${runtime.public.rakiaArBaseUrl.replace(/\/$/, '')}/${props.mission.arSlug || props.mission.id}`)
 const arUrl = computed(() => isIosDevice.value ? IOS_RAKIA_APP_URL : webArUrl.value)
 const arLinkLabel = computed(() => isIosDevice.value ? 'פתחו באפליקציית רקיע לאייפון' : 'פתחו את אפליקציית רקיע')
@@ -301,6 +306,7 @@ async function resetState() {
   savedMessage.value = ''
   checkedControls.value = []
   feedbackOutcome.value = ''
+  celebrationStreak.value = 0
   challengeBusy.value = false
   const video = props.mission.video
   if (video?.url) {
@@ -354,6 +360,8 @@ async function answerQuiz(index: number) {
     { questionId: question.id, selected: index, correct, attempts: attempts.value }
   ]
   if (!correct) {
+    const wrongMessage = 'תשובה לא נכונה, נסו שוב.'
+    quizMessage.value = wrongMessage
     try {
       await showChallengeOutcome(false)
     } catch (error) {
@@ -361,7 +369,7 @@ async function answerQuiz(index: number) {
       quizMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
       return
     }
-    quizMessage.value = 'תשובה לא נכונה, נסו שוב.'
+    if (quizMessage.value === wrongMessage) quizMessage.value = ''
     return
   }
   try {
@@ -394,24 +402,29 @@ function moveSort(index: number, delta: number) {
   sortOrder.value = next
 }
 
-function submitSort() {
+async function submitSort() {
   if (challengeBusy.value) return
   attempts.value += 1
   const correct = sortOrder.value.every((item, index) => item.correctOrder === index + 1)
   if (!correct) {
-    gameMessage.value = 'הסדר עדיין לא מדויק. אפשר לנסות שוב.'
-    void showChallengeOutcome(false).catch((error) => {
+    const wrongMessage = 'הסדר עדיין לא מדויק. אפשר לנסות שוב.'
+    gameMessage.value = wrongMessage
+    try {
+      await showChallengeOutcome(false)
+      if (gameMessage.value === wrongMessage) gameMessage.value = ''
+    } catch (error) {
       console.error(error)
       gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
-    })
+    }
     return
   }
-  void showChallengeOutcome(true)
-    .then(() => completeNow(attempts.value))
-    .catch((error) => {
-      console.error(error)
-      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
-    })
+  try {
+    await showChallengeOutcome(true)
+    completeNow(attempts.value)
+  } catch (error) {
+    console.error(error)
+    gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+  }
 }
 
 function startClassification() {
@@ -419,7 +432,7 @@ function startClassification() {
   classificationStarted.value = true
 }
 
-function submitClassification() {
+async function submitClassification() {
   if (challengeBusy.value) return
   attempts.value += 1
   const items = props.mission.classificationItems || []
@@ -430,32 +443,47 @@ function submitClassification() {
   }
   const correct = items.every((item) => classifications[item.id] === item.category)
   if (!correct) {
-    gameMessage.value = 'חלק מהפריטים עדיין לא במקום הנכון. נסו שוב.'
-    void showChallengeOutcome(false).catch((error) => {
+    const wrongMessage = 'חלק מהפריטים עדיין לא במקום הנכון. נסו שוב.'
+    gameMessage.value = wrongMessage
+    try {
+      await showChallengeOutcome(false)
+      if (gameMessage.value === wrongMessage) gameMessage.value = ''
+    } catch (error) {
       console.error(error)
       gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
-    })
+    }
     return
   }
-  void showChallengeOutcome(true)
-    .then(() => completeNow(attempts.value))
-    .catch((error) => {
-      console.error(error)
-      gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
-    })
+  try {
+    await showChallengeOutcome(true)
+    completeNow(attempts.value)
+  } catch (error) {
+    console.error(error)
+    gameMessage.value = 'לא הצלחנו לשמור את הרצף. בדקו חיבור ונסו שוב.'
+  }
 }
 
 async function showChallengeOutcome(correct: boolean) {
+  const nextStreak = correct ? props.currentCorrectStreak + 1 : 0
+  const visibleMs = correct && nextStreak >= 3 ? 4000 : 2000
   challengeBusy.value = true
+  celebrationStreak.value = nextStreak
   feedbackOutcome.value = correct ? 'correct' : 'wrong'
-  playChallengeSound(correct, correct ? props.currentCorrectStreak + 1 : 0)
+  playChallengeSound(correct, nextStreak)
+  let saveError: unknown
   try {
-    await props.recordChallengeOutcome(correct)
-    await new Promise<void>((resolve) => window.setTimeout(resolve, correct ? 1200 : 3000))
+    const savePromise = props.recordChallengeOutcome(correct).catch((error) => {
+      saveError = error
+    })
+    await Promise.all([
+      savePromise,
+      new Promise<void>((resolve) => window.setTimeout(resolve, visibleMs))
+    ])
   } finally {
     if (feedbackOutcome.value === (correct ? 'correct' : 'wrong')) feedbackOutcome.value = ''
     challengeBusy.value = false
   }
+  if (saveError) throw saveError
 }
 
 async function saveCreation(type: 'patch' | 'jewelry', event: { imageDataUrl: string; data: Record<string, unknown> }) {
@@ -506,8 +534,8 @@ async function saveDream() {
 .mission {
   min-height: 100%;
   position: relative;
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 13px;
   padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
@@ -517,6 +545,7 @@ async function saveDream() {
   z-index: 30;
   bottom: max(10px, env(safe-area-inset-bottom));
   width: 100%;
+  margin-top: auto;
 }
 
 .mission :deep(.mission-action) {
@@ -524,6 +553,7 @@ async function saveDream() {
   z-index: 30;
   bottom: max(10px, env(safe-area-inset-bottom));
   width: 100%;
+  margin-top: auto;
 }
 
 .mission-action:active,
@@ -581,8 +611,14 @@ async function saveDream() {
 .three-panel,
 .dream-panel,
 .summary-panel {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   gap: 12px;
+}
+
+.control-row {
+  margin-top: auto;
 }
 
 .transition-panel h2 {

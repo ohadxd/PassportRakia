@@ -55,7 +55,9 @@ const currentQuestion = computed(() => props.questions[props.currentIndex])
 
 <style scoped>
 .quiz-block {
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: 12px;
   min-height: 100%;
 }
@@ -80,7 +82,7 @@ h2 {
   width: 100%;
   display: grid;
   gap: 10px;
-  margin: 0;
+  margin: auto 0 0;
   border: 1px solid var(--surface-border);
   border-radius: 14px;
   padding: 12px;
