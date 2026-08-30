@@ -102,6 +102,7 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: { include: ['three', 'jspdf', 'html2canvas'] },
     build: {
+      cssCodeSplit: false,
       rollupOptions: {
         output: {
           manualChunks(id) {

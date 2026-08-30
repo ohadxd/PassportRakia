@@ -1,3 +1,6 @@
+let applauseAudio: HTMLAudioElement | null = null
+let rocketAudio: HTMLAudioElement | null = null
+
 export function useStamp() {
   function createAudioContext() {
     if (!import.meta.client) return null
@@ -23,12 +26,11 @@ export function useStamp() {
   }
 
   function playChallengeSound(correct: boolean, streak: number) {
-    const ctx = createAudioContext()
-    if (!ctx) return
-    void ctx.resume()
-    const startAt = ctx.currentTime
-
     if (!correct) {
+      const ctx = createAudioContext()
+      if (!ctx) return
+      void ctx.resume()
+      const startAt = ctx.currentTime
       const oscillator = ctx.createOscillator()
       const gain = ctx.createGain()
       oscillator.type = 'sine'
@@ -44,44 +46,38 @@ export function useStamp() {
       return
     }
 
-    // Three short filtered noise bursts read as applause on small phone speakers.
-    ;[0, .11, .23].forEach((offset, index) => {
-      const duration = .075
-      const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate)
-      const samples = buffer.getChannelData(0)
-      for (let sample = 0; sample < samples.length; sample += 1) {
-        samples[sample] = (Math.random() * 2 - 1) * Math.pow(1 - sample / samples.length, 2)
-      }
-      const source = ctx.createBufferSource()
-      const filter = ctx.createBiquadFilter()
-      const gain = ctx.createGain()
-      source.buffer = buffer
-      filter.type = 'bandpass'
-      filter.frequency.value = 1100 + index * 230
-      filter.Q.value = .7
-      gain.gain.value = .3
-      source.connect(filter)
-      filter.connect(gain)
-      gain.connect(ctx.destination)
-      source.start(startAt + offset)
-    })
-
+    preloadChallengeSounds()
+    playAudioClip(applauseAudio, .72, 1550)
     if (streak >= 2) {
-      const lift = ctx.createOscillator()
-      const liftGain = ctx.createGain()
-      lift.type = 'sawtooth'
-      lift.frequency.setValueAtTime(95, startAt)
-      lift.frequency.exponentialRampToValueAtTime(streak >= 3 ? 620 : 410, startAt + .75)
-      liftGain.gain.setValueAtTime(.035, startAt)
-      liftGain.gain.exponentialRampToValueAtTime(.001, startAt + .82)
-      lift.connect(liftGain)
-      liftGain.connect(ctx.destination)
-      lift.start(startAt)
-      lift.stop(startAt + .85)
+      playAudioClip(rocketAudio, streak >= 3 ? .52 : .4, 1400)
     }
-
-    window.setTimeout(() => void ctx.close(), 1100)
   }
 
-  return { playStampSound, playChallengeSound }
+  function preloadChallengeSounds() {
+    if (!import.meta.client) return
+    if (!applauseAudio) {
+      applauseAudio = new Audio('/audio/applause.mp3')
+      applauseAudio.preload = 'auto'
+      applauseAudio.load()
+    }
+    if (!rocketAudio) {
+      rocketAudio = new Audio('/audio/rocket-whoosh.mp3')
+      rocketAudio.preload = 'auto'
+      rocketAudio.load()
+    }
+  }
+
+  function playAudioClip(audio: HTMLAudioElement | null, volume: number, duration: number) {
+    if (!audio) return
+    audio.pause()
+    audio.currentTime = 0
+    audio.volume = volume
+    void audio.play().catch(() => undefined)
+    window.setTimeout(() => {
+      audio.pause()
+      audio.currentTime = 0
+    }, duration)
+  }
+
+  return { playStampSound, playChallengeSound, preloadChallengeSounds }
 }

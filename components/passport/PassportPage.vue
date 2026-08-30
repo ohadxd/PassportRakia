@@ -33,7 +33,7 @@
 
 @media (max-width: 560px) {
   .passport-page {
-    min-height: calc(100svh - 96px);
+    min-height: clamp(360px, 52svh, 520px);
     max-height: none;
     padding: 18px 16px;
     overflow: visible;

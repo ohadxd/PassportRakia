@@ -144,7 +144,10 @@ export function useFirebase() {
 
   async function createSession(name: string, photoDataUrl?: string) {
     const id = generateId('session')
-    const services = await requireServices()
+    const [services, { doc, setDoc }] = await Promise.all([
+      requireServices(),
+      import('firebase/firestore')
+    ])
     const ownerUid = services.auth.currentUser!.uid
     let photoUrl: string | undefined
     let photoStoragePath: string | undefined
@@ -164,7 +167,6 @@ export function useFirebase() {
       currentCorrectStreak: 0,
       lastActiveAt: nowIso()
     }
-    const { doc, setDoc } = await import('firebase/firestore')
     await setDoc(doc(services.db, 'sessions', id), withoutUndefined(session))
     if (photoDataUrl) {
       const upload = await uploadDataUrl(`user-photos/${id}/passport-photo.jpg`, photoDataUrl)

@@ -55,6 +55,11 @@ const existingSessionId = ref<string | null>(null)
 
 onMounted(() => {
   existingSessionId.value = firebase.getStoredSessionId()
+  // Warm Firebase and anonymous auth while the visitor fills in the form so
+  // the submit click only has to create the passport document.
+  void firebase.getServices().catch((error) => {
+    console.warn('[Firebase] Passport services could not be preloaded.', error)
+  })
 })
 
 onBeforeUnmount(stopCamera)
@@ -86,15 +91,15 @@ function capture() {
     return
   }
   const canvas = document.createElement('canvas')
-  canvas.width = 720
-  canvas.height = 900
+  canvas.width = 480
+  canvas.height = 600
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   const ratio = Math.max(canvas.width / el.videoWidth, canvas.height / el.videoHeight)
   const width = el.videoWidth * ratio
   const height = el.videoHeight * ratio
   ctx.drawImage(el, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height)
-  photoDataUrl.value = canvas.toDataURL('image/jpeg', .86)
+  photoDataUrl.value = canvas.toDataURL('image/jpeg', .8)
   cameraError.value = ''
   stopCamera()
 }
@@ -130,8 +135,8 @@ function resizeImageFile(file: File) {
     image.onload = () => {
       URL.revokeObjectURL(url)
       const canvas = document.createElement('canvas')
-      canvas.width = 720
-      canvas.height = 900
+      canvas.width = 480
+      canvas.height = 600
       const ctx = canvas.getContext('2d')
       if (!ctx) {
         reject(new Error('Canvas is not available.'))
@@ -142,7 +147,7 @@ function resizeImageFile(file: File) {
       const width = image.width * ratio
       const height = image.height * ratio
       ctx.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height)
-      resolve(canvas.toDataURL('image/jpeg', .86))
+      resolve(canvas.toDataURL('image/jpeg', .8))
     }
 
     image.onerror = () => {
