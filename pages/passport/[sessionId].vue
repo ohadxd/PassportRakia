@@ -68,12 +68,20 @@ function go(delta: number) {
 
 async function complete(payload: { attempts: number; answers?: unknown }) {
   if (!mission.value) return
+  const completedMission = mission.value
   const currentIndex = pageIndex.value
+  const nextIndex = currentIndex < orderedMissions.value.length - 1 ? currentIndex + 1 : null
+  // The celebration has already finished, so reveal the next page immediately.
+  // Progress, score, and page persistence then run in order to avoid stale writes.
+  if (nextIndex !== null) localIndex.value = nextIndex
   try {
-    await startMission(mission.value)
-    const result = await completeMission(mission.value, payload.attempts, payload.answers as never)
+    await startMission(completedMission)
+    const result = await completeMission(completedMission, payload.attempts, payload.answers as never)
     if (result.stamped) playStampSound()
-    if (currentIndex < orderedMissions.value.length - 1) advanceTo(currentIndex + 1)
+    if (nextIndex !== null) {
+      await setPage(nextIndex)
+      if (localIndex.value === nextIndex) localIndex.value = null
+    }
   } catch (err) {
     console.error(err)
     error.value = 'לא הצלחנו לשמור את ההתקדמות ב-Firebase. בדקו חוקים והרשאות ונסו שוב.'

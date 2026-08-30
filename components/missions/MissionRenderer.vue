@@ -196,7 +196,11 @@
     </section>
 
     <Stamp v-if="progress?.status === 'completed' && mission.baseScore > 0" :seed="mission.order" :animate="animateStamp" />
-    <StreakCelebration :streak="currentCorrectStreak" :outcome="feedbackOutcome" />
+    <StreakCelebration
+      :streak="feedbackStreak"
+      :outcome="feedbackOutcome"
+      @dismiss="dismissChallengeFeedback"
+    />
   </div>
 </template>
 
@@ -224,7 +228,7 @@ const emit = defineEmits<{
 
 const firebase = useFirebase()
 const profanity = useProfanityFilter()
-const { playChallengeSound } = useStamp()
+const { playChallengeSound, preloadChallengeSounds } = useStamp()
 const runtime = useRuntimeConfig()
 const IOS_RAKIA_APP_URL = 'https://apps.apple.com/fi/app/rakia/id6504777792'
 
@@ -248,9 +252,13 @@ const dreamError = ref('')
 const savedMessage = ref('')
 const animateStamp = ref(false)
 const feedbackOutcome = ref<'correct' | 'wrong' | ''>('')
+const feedbackStreak = ref(0)
 const challengeBusy = ref(false)
 const checkedControls = ref<string[]>([])
 const controlChecks = ['תקשורת תקינה', 'מיקום ידוע', 'צוות כשיר למשימה']
+
+let feedbackTimer: number | undefined
+let resolveFeedback: (() => void) | undefined
 
 const stampMissions = computed(() => missions.filter((mission) => mission.baseScore > 0))
 const isVideoMission = computed(() => ['intro-video', 'video-quiz', 'video-confirmation'].includes(props.mission.type))
@@ -270,9 +278,15 @@ const quizQuestions = computed(() => {
 
 onMounted(() => {
   isIosDevice.value = detectIosDevice()
+  if (isChallengeMission.value) preloadChallengeSounds()
 })
 
+onBeforeUnmount(clearFeedbackWait)
+
 watch(() => props.mission.id, resetState, { immediate: true })
+watch(isChallengeMission, (isChallenge) => {
+  if (isChallenge) preloadChallengeSounds()
+}, { immediate: true })
 watch(() => props.progress?.status, (status) => {
   if (status === 'completed') {
     animateStamp.value = true
@@ -281,6 +295,7 @@ watch(() => props.progress?.status, (status) => {
 })
 
 async function resetState() {
+  clearFeedbackWait()
   const missionId = props.mission.id
   videoUrl.value = ''
   videoError.value = false
@@ -301,6 +316,7 @@ async function resetState() {
   savedMessage.value = ''
   checkedControls.value = []
   feedbackOutcome.value = ''
+  feedbackStreak.value = 0
   challengeBusy.value = false
   const video = props.mission.video
   if (video?.url) {
@@ -373,12 +389,10 @@ async function answerQuiz(index: number) {
   }
   quizMessage.value = 'נכון.'
   if (quizIndex.value < quizQuestions.value.length - 1) {
-    window.setTimeout(() => {
-      quizIndex.value += 1
-      quizMessage.value = ''
-    }, 420)
+    quizIndex.value += 1
+    quizMessage.value = ''
   } else {
-    window.setTimeout(() => completeNow(Math.max(1, attempts.value)), 420)
+    completeNow(Math.max(1, attempts.value))
   }
 }
 
@@ -448,14 +462,48 @@ function submitClassification() {
 async function showChallengeOutcome(correct: boolean) {
   challengeBusy.value = true
   feedbackOutcome.value = correct ? 'correct' : 'wrong'
-  playChallengeSound(correct, correct ? props.currentCorrectStreak + 1 : 0)
+  feedbackStreak.value = correct ? props.currentCorrectStreak + 1 : 0
+  playChallengeSound(correct, feedbackStreak.value)
+  let saveError: unknown
+  const saveOutcome = props.recordChallengeOutcome(correct).catch((error) => {
+    saveError = error
+  })
   try {
-    await props.recordChallengeOutcome(correct)
-    await new Promise<void>((resolve) => window.setTimeout(resolve, correct ? 1200 : 3000))
+    await waitForFeedback(correct ? 1450 : 2500)
+    if (feedbackOutcome.value === (correct ? 'correct' : 'wrong')) feedbackOutcome.value = ''
+    await saveOutcome
+    if (saveError) throw saveError
   } finally {
+    clearFeedbackWait()
     if (feedbackOutcome.value === (correct ? 'correct' : 'wrong')) feedbackOutcome.value = ''
     challengeBusy.value = false
   }
+}
+
+function waitForFeedback(duration: number) {
+  clearFeedbackWait()
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      if (feedbackTimer !== undefined) window.clearTimeout(feedbackTimer)
+      feedbackTimer = undefined
+      resolveFeedback = undefined
+      resolve()
+    }
+    feedbackTimer = window.setTimeout(finish, duration)
+    resolveFeedback = finish
+  })
+}
+
+function dismissChallengeFeedback() {
+  if (feedbackOutcome.value === 'wrong') resolveFeedback?.()
+}
+
+function clearFeedbackWait() {
+  if (feedbackTimer !== undefined) window.clearTimeout(feedbackTimer)
+  feedbackTimer = undefined
+  const resolve = resolveFeedback
+  resolveFeedback = undefined
+  resolve?.()
 }
 
 async function saveCreation(type: 'patch' | 'jewelry', event: { imageDataUrl: string; data: Record<string, unknown> }) {
@@ -509,29 +557,25 @@ async function saveDream() {
   display: grid;
   align-content: start;
   gap: 13px;
-  padding-bottom: clamp(160px, 31svh, 270px);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 .mission-action {
-  position: fixed;
+  position: sticky;
   z-index: 30;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  width: min(calc(100vw - 40px), 700px);
-  transform: translateX(-50%);
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .mission :deep(.mission-action) {
-  position: fixed;
+  position: sticky;
   z-index: 30;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  width: min(calc(100vw - 40px), 700px);
-  transform: translateX(-50%);
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .mission-action:active,
-.mission :deep(.mission-action:active) { transform: translateX(-50%) translateY(1px); }
+.mission :deep(.mission-action:active) { transform: translateY(1px); }
 
 .mission :deep(.mission-header) {
   position: sticky;

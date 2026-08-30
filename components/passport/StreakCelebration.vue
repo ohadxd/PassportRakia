@@ -1,47 +1,291 @@
 <template>
-  <div class="streak-scene" :class="{ 'has-orbit': streak >= 2, 'has-satellites': streak >= 3, 'is-celebrating': outcome === 'correct' }" aria-hidden="true">
-    <div v-if="streak >= 2 && outcome !== 'wrong'" class="space-scene">
-      <div class="earth"><i /><b /><em /></div>
-      <div class="rocket"><span class="rocket-window" /><span class="rocket-flame" /></div>
-      <div v-if="streak >= 3" class="orbit orbit-one"><span class="satellite"><i /><b /></span></div>
-      <div v-if="streak >= 3" class="orbit orbit-two"><span class="satellite"><i /><b /></span></div>
+  <div v-if="outcome" class="streak-scene" :class="`is-${outcome}`">
+    <button
+      v-if="outcome === 'wrong'"
+      class="dismiss-layer"
+      type="button"
+      aria-label="סגירת ההודעה וניסיון נוסף"
+      @click="emit('dismiss')"
+    />
+
+    <div v-if="outcome === 'correct'" class="celebration-stage" aria-hidden="true">
+      <i
+        v-for="(piece, index) in confettiPieces"
+        :key="index"
+        class="confetti"
+        :class="`confetti-${(index % 4) + 1}`"
+        :style="piece"
+      />
+
+      <div class="applause-crowd">
+        <span>👏</span><span>👏</span><span>👏</span><span>👏</span><span>👏</span>
+      </div>
+
+      <span v-if="streak >= 2" class="spacecraft craft-primary">
+        <svg viewBox="0 0 120 58" role="presentation">
+          <path class="rocket-body" d="M9 31 37 20C53 7 74 2 102 4c-5 20-18 35-39 43L31 51Z" />
+          <path class="rocket-window" d="M69 15c8-4 16-5 24-5-3 7-7 13-12 18Z" />
+          <path class="rocket-fin" d="m43 21-14-16 28 9M38 44 20 57l34-8" />
+          <path class="rocket-flame" d="m24 27-22 4 22 7-8-7Z" />
+        </svg>
+      </span>
+
+      <span v-if="streak >= 3" class="spacecraft craft-secondary">
+        <svg viewBox="0 0 120 58" role="presentation">
+          <path class="rocket-body" d="M9 31 37 20C53 7 74 2 102 4c-5 20-18 35-39 43L31 51Z" />
+          <path class="rocket-window" d="M69 15c8-4 16-5 24-5-3 7-7 13-12 18Z" />
+          <path class="rocket-fin" d="m43 21-14-16 28 9M38 44 20 57l34-8" />
+          <path class="rocket-flame" d="m24 27-22 4 22 7-8-7Z" />
+        </svg>
+      </span>
     </div>
 
-    <div v-if="outcome === 'correct'" class="feedback correct-feedback" role="presentation">
-      <div class="hands"><span class="hand hand-right" /><span class="hand hand-left" /><i class="spark spark-one" /><i class="spark spark-two" /><i class="spark spark-three" /></div>
-      <strong>{{ streak >= 3 ? 'רצף מסלולי!' : streak === 2 ? 'ממריאים קדימה!' : 'כל הכבוד!' }}</strong>
-      <small>{{ streak }} תשובות נכונות ברצף</small>
-    </div>
-
-    <div v-else-if="outcome === 'wrong'" class="feedback wrong-feedback" role="presentation">
-      <div class="sad-face"><i /><i /><b /></div>
-      <strong>לא נורא, נסו שוב</strong>
-      <small>הרצף מתחיל מחדש</small>
+    <div
+      class="feedback"
+      :class="outcome === 'correct' ? 'correct-feedback' : 'wrong-feedback'"
+      :role="outcome === 'wrong' ? 'alertdialog' : 'status'"
+      aria-live="assertive"
+    >
+      <div v-if="outcome === 'correct'" class="clap-focus" aria-hidden="true">👏</div>
+      <div v-else class="retry-mark" aria-hidden="true">×</div>
+      <strong>{{ feedbackTitle }}</strong>
+      <small v-if="outcome === 'correct'">{{ streak }} תשובות נכונות ברצף</small>
+      <small v-else>נסו שוב בעוד רגע · לחצו כדי להמשיך עכשיו</small>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   streak: number
   outcome?: 'correct' | 'wrong' | ''
 }>(), { outcome: '' })
+
+const emit = defineEmits<{ dismiss: [] }>()
+
+const confettiPieces = Array.from({ length: 22 }, (_, index) => ({
+  '--x': `${(index * 43) % 100}%`,
+  '--delay': `${(index % 7) * 35}ms`,
+  '--drift': `${((index % 5) - 2) * 23}px`
+}))
+
+const feedbackTitle = computed(() => {
+  if (props.outcome === 'wrong') return 'לא נורא, נסו שוב'
+  if (props.streak >= 3) return 'רצף חללי!'
+  if (props.streak === 2) return 'ממריאים קדימה!'
+  return 'כל הכבוד!'
+})
 </script>
 
 <style scoped>
-.streak-scene { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; }
-.space-scene { position: absolute; inset: 10% 0 auto; height: 210px; opacity: .22; filter: saturate(1.15); transition: opacity .2s ease; }
-.is-celebrating .space-scene { opacity: .86; }
-.earth { position: absolute; width: 128px; aspect-ratio: 1; inset: 45px auto auto 7%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 34% 28%, #86e9ff 0 5%, #00aeef 22%, #1767c2 60%, #190c4f 100%); box-shadow: 0 0 34px rgba(var(--accent-rgb), .72); animation: earth-float 4.2s ease-in-out infinite; }
-.earth::after { content: ''; position: absolute; inset: -10%; border-radius: 50%; background: repeating-radial-gradient(ellipse at 15% 35%, transparent 0 15px, rgba(255,255,255,.23) 16px 20px, transparent 21px 36px); transform: rotate(-20deg); }
-.earth i, .earth b, .earth em { position: absolute; display: block; border-radius: 55% 45% 47% 53%; background: #66d69a; z-index: 1; }
-.earth i { width: 42px; height: 30px; top: 43px; right: 9px; transform: rotate(22deg); }.earth b { width: 34px; height: 45px; bottom: 15px; left: 17px; transform: rotate(-28deg); }.earth em { width: 24px; height: 20px; top: 18px; left: 22px; }
-.rocket { position: absolute; width: 22px; height: 66px; inset: 8px auto auto 45%; border-radius: 50% 50% 35% 35%; background: linear-gradient(90deg, #fff 0 48%, #c4efff 49%); transform: rotate(28deg); animation: rocket-lift 2.8s ease-in-out infinite; }
-.rocket::before, .rocket::after { content: ''; position: absolute; bottom: 7px; width: 14px; height: 18px; background: var(--highlight); }.rocket::before { left: -9px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }.rocket::after { right: -9px; clip-path: polygon(0 0, 100% 100%, 0 100%); }.rocket-window { position: absolute; width: 9px; aspect-ratio: 1; border-radius: 50%; top: 13px; left: 6px; background: var(--bg); }.rocket-flame { position: absolute; bottom: -24px; left: 6px; border-inline: 5px solid transparent; border-top: 25px solid #ffcc4d; filter: drop-shadow(0 0 7px #ff7638); }
-.orbit { position: absolute; width: 214px; height: 84px; border: 1px solid rgba(var(--accent-rgb), .58); border-radius: 50%; inset: 66px auto auto 0; transform: rotate(-18deg); animation: orbit 7s linear infinite; }.orbit-two { inset: 57px auto auto 4%; transform: rotate(44deg); animation-duration: 9s; animation-direction: reverse; }.satellite { position: absolute; top: -6px; left: 21px; display: flex; align-items: center; width: 23px; height: 11px; border-radius: 3px; background: #edfaff; box-shadow: 0 0 9px rgba(255,255,255,.7); }.satellite::before, .satellite::after { content: ''; width: 16px; height: 9px; background: var(--accent); }.satellite::before { margin-right: -16px; transform: translateX(-16px); }.satellite::after { margin-left: 23px; }.satellite i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--highlight); }
-.feedback { position: absolute; inset: 46% 18px auto; z-index: 42; display: grid; justify-items: center; gap: 5px; padding: 18px; border: 1px solid rgba(var(--accent-rgb), .6); border-radius: 16px; color: var(--text); text-align: center; background: rgba(var(--bg-rgb), .94); box-shadow: 0 15px 48px rgba(var(--bg-rgb), .48), 0 0 36px rgba(var(--accent-rgb), .4); transform: translateY(-50%); backdrop-filter: blur(8px); }.feedback strong { font-family: var(--font-head); font-size: 1.3rem; }.feedback small { color: var(--text-muted); font-weight: 500; }.correct-feedback { animation: feedback-in 1.2s ease both; }.wrong-feedback { border-color: rgba(var(--red-rgb), .8); animation: feedback-in .38s ease both; }
-.hands { position: relative; width: 104px; height: 58px; }.hand { position: absolute; bottom: 3px; width: 32px; height: 52px; border-radius: 42% 42% 22% 22%; background: linear-gradient(90deg, #ffd6b7, #f0a879); box-shadow: inset -5px 0 rgba(143,65,49,.16); }.hand::before { content: ''; position: absolute; top: -10px; width: 13px; height: 31px; border-radius: 8px; background: inherit; }.hand-right { left: 22px; transform: rotate(-23deg); animation: clap-right .36s ease-in-out infinite alternate; }.hand-right::before { right: -4px; transform: rotate(-13deg); }.hand-left { right: 22px; transform: rotate(23deg) scaleX(-1); animation: clap-left .36s ease-in-out infinite alternate; }.hand-left::before { right: -4px; transform: rotate(-13deg); }.spark { position: absolute; width: 5px; aspect-ratio: 1; border-radius: 50%; background: var(--accent); }.spark-one { top: 2px; left: 50%; }.spark-two { top: 15px; left: 15px; background: var(--highlight); }.spark-three { top: 15px; right: 15px; background: #ffcc4d; }
-.sad-face { position: relative; width: 68px; aspect-ratio: 1; border-radius: 50%; background: #ffd36b; box-shadow: 0 0 21px rgba(255,211,107,.3); }.sad-face i { position: absolute; top: 23px; width: 7px; aspect-ratio: 1; border-radius: 50%; background: var(--bg); }.sad-face i:first-child { left: 19px; }.sad-face i:nth-child(2) { right: 19px; }.sad-face b { position: absolute; width: 26px; height: 13px; inset: auto 21px 13px; border-top: 4px solid var(--bg); border-radius: 50% 50% 0 0; }
-@keyframes feedback-in { 0% { opacity: 0; transform: translateY(-44%) scale(.78); } 24% { opacity: 1; transform: translateY(-50%) scale(1.05); } 100% { opacity: 1; transform: translateY(-50%) scale(1); } } @keyframes clap-right { to { transform: rotate(-6deg) translate(7px, -5px); } } @keyframes clap-left { to { transform: rotate(6deg) scaleX(-1) translate(7px, -5px); } } @keyframes earth-float { 50% { transform: translateY(-10px) rotate(6deg); } } @keyframes rocket-lift { 50% { transform: translate(25px, -34px) rotate(28deg); } } @keyframes orbit { to { rotate: 360deg; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+.streak-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.streak-scene::before {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(var(--accent-rgb), .18), rgba(var(--bg-rgb), .2) 45%, rgba(var(--bg-rgb), .58));
+  content: '';
+  animation: scene-flash 1.45s ease-out both;
+}
+
+.is-wrong { pointer-events: auto; }
+
+.is-wrong::before {
+  background: rgba(var(--bg-rgb), .42);
+  animation: fade-in .2s ease both;
+}
+
+.dismiss-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.celebration-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.applause-crowd {
+  position: absolute;
+  right: 50%;
+  bottom: 6%;
+  display: flex;
+  align-items: end;
+  gap: clamp(3px, 2vw, 16px);
+  font-size: clamp(2rem, 10vw, 5rem);
+  transform: translateX(50%);
+  filter: drop-shadow(0 8px 12px rgba(var(--bg-rgb), .5));
+}
+
+.applause-crowd span {
+  opacity: 0;
+  animation: crowd-clap .34s calc(var(--delay, 0) * 1ms) ease-in-out 4 alternate;
+}
+
+.applause-crowd span:nth-child(1) { --delay: 110; transform: scale(.72) rotate(-14deg); }
+.applause-crowd span:nth-child(2) { --delay: 20; transform: scale(.9) rotate(8deg); }
+.applause-crowd span:nth-child(3) { --delay: 70; transform: scale(1.08); }
+.applause-crowd span:nth-child(4) { --delay: 0; transform: scale(.9) rotate(-8deg); }
+.applause-crowd span:nth-child(5) { --delay: 130; transform: scale(.72) rotate(14deg); }
+
+.confetti {
+  position: absolute;
+  top: -24px;
+  left: var(--x);
+  width: 8px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  animation: confetti-fall 1.45s var(--delay) cubic-bezier(.18, .72, .38, 1) both;
+}
+
+.confetti-2 { background: var(--highlight); }
+.confetti-3 { background: #ffd45c; }
+.confetti-4 { background: #fff; }
+
+.spacecraft {
+  position: absolute;
+  width: clamp(92px, 27vw, 170px);
+  opacity: 0;
+  filter: drop-shadow(0 0 12px rgba(var(--accent-rgb), .62));
+}
+
+.spacecraft svg { width: 100%; overflow: visible; }
+.rocket-body { fill: #eefaff; stroke: var(--accent); stroke-width: 2.2; }
+.rocket-window { fill: var(--bg-2); stroke: var(--accent); stroke-width: 2; }
+.rocket-fin { fill: var(--highlight); stroke: var(--accent); stroke-linejoin: round; stroke-width: 2; }
+.rocket-flame {
+  fill: #ffca42;
+  stroke: #ff6b35;
+  stroke-width: 2;
+  animation: flame-pulse .12s ease-in-out infinite alternate;
+  transform-origin: 24px 31px;
+}
+
+.craft-primary {
+  top: 17%;
+  left: -180px;
+  animation: ship-pass 1.35s .05s cubic-bezier(.18, .58, .3, 1) both;
+}
+
+.craft-secondary {
+  right: -180px;
+  bottom: 24%;
+  transform: scaleX(-1) scale(.78);
+  animation: ship-pass-reverse 1.25s .18s cubic-bezier(.18, .58, .3, 1) both;
+}
+
+.feedback {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  width: min(calc(100% - 32px), 360px);
+  justify-items: center;
+  gap: 7px;
+  padding: 20px;
+  border: 1px solid rgba(var(--accent-rgb), .72);
+  border-radius: 18px;
+  color: var(--text);
+  text-align: center;
+  background: rgba(var(--bg-rgb), .94);
+  box-shadow: 0 18px 54px rgba(var(--bg-rgb), .58), 0 0 42px rgba(var(--accent-rgb), .42);
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(10px);
+}
+
+.feedback strong { font-family: var(--font-head); font-size: 1.4rem; }
+.feedback small { color: var(--text-muted); font-weight: 500; }
+
+.correct-feedback { animation: success-card 1.45s cubic-bezier(.2, .76, .28, 1) both; }
+.wrong-feedback {
+  border-color: rgba(var(--red-rgb), .82);
+  box-shadow: 0 18px 54px rgba(var(--bg-rgb), .58);
+  animation: retry-card .28s cubic-bezier(.2, .82, .32, 1) both;
+}
+
+.clap-focus {
+  font-size: 4.4rem;
+  line-height: 1;
+  animation: focus-clap .28s ease-in-out 5 alternate;
+  transform-origin: 50% 90%;
+}
+
+.retry-mark {
+  display: grid;
+  width: 68px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  color: var(--error-text);
+  background: rgba(var(--red-rgb), .14);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+@keyframes scene-flash {
+  0% { opacity: 0; }
+  14%, 76% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes crowd-clap { from { opacity: .35; translate: 0 18px; } to { opacity: 1; translate: 0 -7px; } }
+@keyframes focus-clap { from { transform: scale(.88) rotate(-6deg); } to { transform: scale(1.12) rotate(6deg); } }
+
+@keyframes confetti-fall {
+  0% { opacity: 0; transform: translate3d(0, -20px, 0) rotate(0); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--drift), 92vh, 0) rotate(640deg); }
+}
+
+@keyframes ship-pass {
+  0% { opacity: 0; transform: translate3d(0, 48px, 0) rotate(-10deg) scale(.75); }
+  14%, 78% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(calc(100vw + 360px), -80px, 0) rotate(-10deg) scale(1); }
+}
+
+@keyframes ship-pass-reverse {
+  0% { opacity: 0; transform: translate3d(0, 36px, 0) scaleX(-1) scale(.62) rotate(-8deg); }
+  18%, 76% { opacity: .92; }
+  100% { opacity: 0; transform: translate3d(calc(-100vw - 360px), -62px, 0) scaleX(-1) scale(.84) rotate(-8deg); }
+}
+
+@keyframes flame-pulse { to { transform: scaleX(1.3); filter: drop-shadow(-7px 0 5px #ff7b31); } }
+
+@keyframes success-card {
+  0% { opacity: 0; transform: translate(-50%, calc(-50% + 20px)) scale(.82); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+  75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 10px)) scale(.98); }
+}
+
+@keyframes retry-card {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
 </style>

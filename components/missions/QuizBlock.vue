@@ -74,12 +74,10 @@ h2 {
 }
 
 .quiz-actions {
-  position: fixed;
+  position: sticky;
   z-index: 30;
-  left: 50%;
   bottom: max(10px, env(safe-area-inset-bottom));
-  width: min(calc(100vw - 28px), 716px);
-  transform: translateX(-50%);
+  width: 100%;
   display: grid;
   gap: 10px;
   margin: 0;

@@ -21,7 +21,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'he', dir: 'rtl' },
       title: 'דרכון משימת רקיע',
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content' },
         { name: 'theme-color', content: '#07172f' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
@@ -102,6 +102,7 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: { include: ['three', 'jspdf', 'html2canvas'] },
     build: {
+      cssCodeSplit: false,
       rollupOptions: {
         output: {
           manualChunks(id) {
